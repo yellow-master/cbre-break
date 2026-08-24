@@ -1,0 +1,25 @@
+# Runtime files
+cbre_break_data.json
+cbre_break_log.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+dist/
+*.apk
+*.aab
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
