@@ -71,6 +71,7 @@ jobs:
             --build-number ${{ github.run_number }} \
             --org de.cbre \
             --project CBRE_BREAK \
+            --template ./flet-template \
             . 2>&1 | tee build.log
           BUILD_EXIT=${PIPESTATUS[0]}
           echo "Flet build exit code: $BUILD_EXIT"
