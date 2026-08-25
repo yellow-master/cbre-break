@@ -12,7 +12,6 @@ jobs:
     env:
       ANDROID_HOME: ${{ github.workspace }}/android-sdk
       ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-      GRADLE_OPTS: -Xmx2g -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=256m -Dorg.gradle.daemon=false
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,15 +49,16 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
 
-      - name: Build APK
-        env:
-          ANDROID_HOME: ${{ github.workspace }}/android-sdk
-          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+      - name: Show Flet and Gradle config
         run: |
           flutter config --android-sdk $ANDROID_HOME
           flutter doctor -v || true
           flet --version
-          echo "Building APK..."
+          echo "pyproject.toml:"
+          cat pyproject.toml
+
+      - name: Build APK
+        run: |
           flet build apk --no-rich-output --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
@@ -67,6 +67,11 @@ jobs:
             --org de.cbre \
             --project CBRE_BREAK \
             .
+
+      - name: Show generated gradle.properties
+        run: |
+          echo "Generated gradle.properties:"
+          cat build/flutter/android/gradle.properties || true
 
       - name: Upload APK artifact
         if: success()
