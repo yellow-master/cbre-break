@@ -81,8 +81,8 @@ jobs:
           echo "=== BUILD TREE ==="
           find build -maxdepth 4 -type f 2>/dev/null | head -100 || true
           echo "=== APK SEARCH ==="
-          find build -maxdepth 6 -name "*.apk" 2>/dev/null || true
-          find . -maxdepth 6 -path "*/outputs/flutter-apk/*" 2>/dev/null || true
+          find build -maxdepth 4 -name "*.apk" 2>/dev/null || true
+          ls -la build/apk 2>/dev/null || true
           echo "=== GRADLE PROPERTIES ==="
           cat build/flutter/android/gradle.properties 2>/dev/null || true
 
@@ -92,6 +92,7 @@ jobs:
         with:
           name: cbre-break-apk
           path: |
+            build/apk/*.apk
             build/app/outputs/flutter-apk/*.apk
             build/flutter/android/app/release/app-release.apk
             build/**/*.apk
@@ -102,6 +103,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
+            build/apk/*.apk
             build/app/outputs/flutter-apk/*.apk
             build/flutter/android/app/release/app-release.apk
             build/**/*.apk
