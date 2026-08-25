@@ -25,49 +25,45 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          ndk-version: 28.2.13676358
-
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq curl git unzip xz-utils zip
+
+      - name: Install Flutter dependencies
+        run: |
           pip install --no-cache-dir flet==0.86.5 flet-cli==0.86.5
 
-      - name: Accept Android licenses
-        run: yes | flutter doctor --android-licenses || true
-
-      - name: Install required SDK components
+      - name: Set up Android SDK
         run: |
-          yes | sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "platform-tools"
-
-      - name: Debug environment
-        run: |
-          echo "Flutter version:"
-          flutter --version
-          echo "Java version:"
-          java -version
-          echo "ANDROID_HOME: $ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
-          echo "Gradle version:"
-          gradle --version || true
-          echo "Flet version:"
-          flet --version
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          curl -sL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          rm cmdline-tools.zip
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+          yes | sdkmanager --licenses || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "platform-tools"
 
       - name: Build APK
+        env:
+          GRADLE_OPTS: "-Xmx2G -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=256m -Dorg.gradle.daemon=false"
         run: |
-          export GRADLE_OPTS="-Xmx2G -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=256m -Dorg.gradle.daemon=false"
+          flutter doctor -v || true
+          flet --version
           flet build apk --no-rich-output --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
             --build-version ${GITHUB_REF_NAME#v} \
             --build-number ${{ github.run_number }} \
             --org de.cbre \
-            --project CBRE_BREAK .
+            --project CBRE_BREAK \
+            --no-compile-packages \
+            .
 
       - name: Upload APK artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: cbre-break-apk
@@ -75,7 +71,7 @@ jobs:
           retention-days: 30
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') && success()
         uses: softprops/action-gh-release@v1
         with:
           files: build/flutter/android/app/release/app-release.apk
