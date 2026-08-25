@@ -27,6 +27,8 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          ndk-version: 28.2.13676358
 
       - name: Install dependencies
         run: |
@@ -36,6 +38,10 @@ jobs:
 
       - name: Accept Android licenses
         run: yes | flutter doctor --android-licenses || true
+
+      - name: Install required SDK components
+        run: |
+          yes | sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "platform-tools"
 
       - name: Build APK
         run: |
