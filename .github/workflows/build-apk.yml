@@ -64,12 +64,14 @@ jobs:
           flet --version
           echo "=== START BUILD ==="
           set +e
-          flet build apk --no-rich-output --yes \
+          flet build apk --verbose --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
             --org de.cbre \
             --project CBRE_BREAK \
-            .
+            --build-version 1.0 \
+            --build-number 1 \
+            . 2>&1 | tee build.log
           echo "=== EXIT CODE: $? ==="
           set -e
           echo "=== gradle.properties ==="
@@ -79,12 +81,18 @@ jobs:
       - name: Inspect build outputs
         run: |
           echo "=== BUILD TREE ==="
-          find build -maxdepth 4 -type f 2>/dev/null | head -100 || true
+          find build -maxdepth 5 -type f 2>/dev/null | head -200 || true
           echo "=== APK SEARCH ==="
-          find build -maxdepth 4 -name "*.apk" 2>/dev/null || true
+          find build -maxdepth 5 -name "*.apk" 2>/dev/null || true
+          find . -maxdepth 5 -name "*.apk" 2>/dev/null || true
+          echo "=== build/apk ==="
           ls -la build/apk 2>/dev/null || true
+          echo "=== build/app/outputs ==="
+          find build/app/outputs -maxdepth 3 -type f 2>/dev/null || true
           echo "=== GRADLE PROPERTIES ==="
           cat build/flutter/android/gradle.properties 2>/dev/null || true
+          echo "=== BUILD LOG TAIL ==="
+          tail -n 80 build.log 2>/dev/null || true
 
       - name: Upload APK artifact
         if: success()
@@ -97,6 +105,15 @@ jobs:
             build/flutter/android/app/release/app-release.apk
             build/**/*.apk
           retention-days: 30
+        continue-on-error: false
+
+      - name: Fail if no APK found
+        if: success()
+        run: |
+          if ! find build -maxdepth 5 -name "*.apk" 2>/dev/null | grep -q .; then
+            echo "ERROR: No APK found in build directory"
+            exit 1
+          fi
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v') && success()
