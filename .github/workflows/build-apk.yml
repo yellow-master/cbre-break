@@ -107,6 +107,14 @@ jobs:
           retention-days: 30
         continue-on-error: false
 
+      - name: Fail if no APK found
+        if: always()
+        run: |
+          if ! find build -maxdepth 5 -name "*.apk" 2>/dev/null | grep -q .; then
+            echo "ERROR: No APK found in build directory"
+            exit 1
+          fi
+
       - name: Upload build log on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -114,14 +122,6 @@ jobs:
           name: build-log
           path: build.log
           retention-days: 30
-
-      - name: Fail if no APK found
-        if: success()
-        run: |
-          if ! find build -maxdepth 5 -name "*.apk" 2>/dev/null | grep -q .; then
-            echo "ERROR: No APK found in build directory"
-            exit 1
-          fi
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v') && success()
