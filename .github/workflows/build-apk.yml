@@ -58,8 +58,8 @@ jobs:
           ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
         run: |
           flutter config --android-sdk $ANDROID_HOME
-          flet --version
           echo "=== START BUILD ==="
+          set -e
           flet build apk --no-rich-output --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
