@@ -9,6 +9,10 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+      GRADLE_OPTS: -Xmx2g -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=256m -Dorg.gradle.daemon=false
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,11 +38,7 @@ jobs:
         run: |
           pip install --no-cache-dir flet==0.86.5 flet-cli==0.86.5
 
-      - name: Build APK
-        env:
-          ANDROID_HOME: ${{ github.workspace }}/android-sdk
-          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-          GRADLE_OPTS: -Xmx2g -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=256m -Dorg.gradle.daemon=false
+      - name: Set up Android SDK
         run: |
           mkdir -p $ANDROID_HOME/cmdline-tools
           curl -sL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o cmdline-tools.zip
@@ -47,14 +47,23 @@ jobs:
           rm cmdline-tools.zip
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "platform-tools"
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+
+      - name: Build APK
+        run: |
           flutter config --android-sdk $ANDROID_HOME
+          flutter doctor -v || true
+          flet --version
           flet build apk --no-rich-output --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
             --build-version ${GITHUB_REF_NAME#v} \
             --build-number ${{ github.run_number }} \
             --org de.cbre \
-            --project CBRE_BREAK .
+            --project CBRE_BREAK \
+            --no-compile-packages \
+            .
 
       - name: Upload APK artifact
         if: success()
