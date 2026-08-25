@@ -49,7 +49,7 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
 
-      - name: Show Flet and Gradle config
+      - name: Show environment and config
         run: |
           flutter config --android-sdk $ANDROID_HOME
           flutter doctor -v || true
@@ -59,6 +59,7 @@ jobs:
 
       - name: Build APK
         run: |
+          echo "Starting Flet build..."
           flet build apk --no-rich-output --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
@@ -66,12 +67,14 @@ jobs:
             --build-number ${{ github.run_number }} \
             --org de.cbre \
             --project CBRE_BREAK \
-            .
-
-      - name: Show generated gradle.properties
-        run: |
-          echo "Generated gradle.properties:"
-          cat build/flutter/android/gradle.properties || true
+            . 2>&1 | tee build.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          echo "Flet build exit code: $BUILD_EXIT"
+          if [ -d "build/flutter/android" ]; then
+            echo "Generated gradle.properties:"
+            cat build/flutter/android/gradle.properties || true
+          fi
+          exit $BUILD_EXIT
 
       - name: Upload APK artifact
         if: success()
@@ -79,6 +82,14 @@ jobs:
         with:
           name: cbre-break-apk
           path: build/flutter/android/app/release/app-release.apk
+          retention-days: 30
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
           retention-days: 30
 
       - name: Create GitHub Release
