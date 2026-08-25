@@ -76,12 +76,23 @@ jobs:
           cat build/flutter/android/gradle.properties 2>/dev/null || true
           echo "=== BUILD FINISHED ==="
 
+      - name: Inspect build outputs
+        run: |
+          echo "=== BUILD TREE ==="
+          find build -maxdepth 4 -type f 2>/dev/null | head -100 || true
+          echo "=== APK SEARCH ==="
+          find . -maxdepth 6 -name "*.apk" 2>/dev/null || true
+          echo "=== GRADLE PROPERTIES ==="
+          cat build/flutter/android/gradle.properties 2>/dev/null || true
+
       - name: Upload APK artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: cbre-break-apk
-          path: build/flutter/android/app/release/app-release.apk
+          path: |
+            build/flutter/android/app/release/app-release.apk
+            build/**/*.apk
           retention-days: 30
 
       - name: Create GitHub Release
