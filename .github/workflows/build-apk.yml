@@ -33,9 +33,9 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq curl git unzip xz-utils zip
 
-      - name: Install Flet
+      - name: Install Flet 0.86.4
         run: |
-          pip install --no-cache-dir flet==0.86.5 flet-cli==0.86.5
+          pip install --no-cache-dir flet==0.86.4 flet-cli==0.86.4
 
       - name: Set up Android SDK
         run: |
@@ -49,17 +49,15 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
 
-      - name: Show environment and config
+      - name: Build APK
+        env:
+          ANDROID_HOME: ${{ github.workspace }}/android-sdk
+          ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
         run: |
           flutter config --android-sdk $ANDROID_HOME
           flutter doctor -v || true
           flet --version
-          echo "pyproject.toml:"
-          cat pyproject.toml
-
-      - name: Build APK
-        run: |
-          echo "Starting Flet build..."
+          echo "Building APK with Flet 0.86.4..."
           flet build apk --no-rich-output --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
