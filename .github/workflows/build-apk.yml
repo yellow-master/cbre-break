@@ -43,10 +43,23 @@ jobs:
         run: |
           yes | sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "platform-tools"
 
+      - name: Debug environment
+        run: |
+          echo "Flutter version:"
+          flutter --version
+          echo "Java version:"
+          java -version
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          echo "Gradle version:"
+          gradle --version || true
+          echo "Flet version:"
+          flet --version
+
       - name: Build APK
         run: |
           export GRADLE_OPTS="-Xmx2G -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=256m -Dorg.gradle.daemon=false"
-          flet build apk --yes \
+          flet build apk --no-rich-output --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
             --build-version ${GITHUB_REF_NAME#v} \
