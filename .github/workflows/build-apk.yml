@@ -33,9 +33,9 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq curl git unzip xz-utils zip
 
-      - name: Install Flet 0.86.4
+      - name: Install Flet 0.9.0
         run: |
-          pip install --no-cache-dir flet==0.86.4 flet-cli==0.86.4
+          pip install --no-cache-dir flet==0.9.0 flet-cli==0.9.0
 
       - name: Set up Android SDK
         run: |
@@ -57,7 +57,7 @@ jobs:
           flutter config --android-sdk $ANDROID_HOME
           flutter doctor -v || true
           flet --version
-          echo "Building APK with Flet 0.86.4..."
+          echo "Building APK with Flet 0.9.0..."
           flet build apk --no-rich-output --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
