@@ -1,9 +1,8 @@
-name: Build CBRE Break APK
+name: Build CBRE Break APK (minimal)
 
 on:
   push:
     branches: [ main ]
-    tags: [ 'v*' ]
   workflow_dispatch:
 
 jobs:
@@ -33,7 +32,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq curl git unzip xz-utils zip
 
-      - name: Install Flet 0.86.5
+      - name: Install Flet
         run: |
           pip install --no-cache-dir flet==0.86.5 flet-cli==0.86.5
 
@@ -49,57 +48,25 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
 
-      - name: Build APK
+      - name: Run Flet build and capture full log
         env:
           ANDROID_HOME: ${{ github.workspace }}/android-sdk
           ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
         run: |
           flutter config --android-sdk $ANDROID_HOME
-          flutter doctor -v || true
           flet --version
           echo "pyproject.toml:"
           cat pyproject.toml
-          echo "Building APK..."
+          echo "=== START BUILD ==="
+          set +e
           flet build apk --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
-            --build-version ${GITHUB_REF_NAME#v} \
-            --build-number ${{ github.run_number }} \
             --org de.cbre \
             --project CBRE_BREAK \
-            --arch arm64-v8a \
-            --template ./flet-template \
-            . 2>&1 | tee build.log
-          BUILD_EXIT=${PIPESTATUS[0]}
-          echo "Flet build exit code: $BUILD_EXIT"
-          if [ -d "build/flutter/android" ]; then
-            echo "Generated gradle.properties:"
-            cat build/flutter/android/gradle.properties || true
-          fi
-          exit $BUILD_EXIT
-
-      - name: Upload APK artifact
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cbre-break-apk
-          path: build/flutter/android/app/release/app-release.apk
-          retention-days: 30
-
-      - name: Upload build log on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
-          retention-days: 30
-
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') && success()
-        uses: softprops/action-gh-release@v1
-        with:
-          files: build/flutter/android/app/release/app-release.apk
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            .
+          echo "=== EXIT CODE: $? ==="
+          set -e
+          echo "=== gradle.properties ==="
+          cat build/flutter/android/gradle.properties || true
+          echo "=== BUILD FINISHED ==="
