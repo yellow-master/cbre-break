@@ -52,50 +52,49 @@ jobs:
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
 
-      - name: Run Flet build and capture full log
+      - name: Build APK
         env:
           ANDROID_HOME: ${{ github.workspace }}/android-sdk
           ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
         run: |
           flutter config --android-sdk $ANDROID_HOME
           flet --version
-          echo "pyproject.toml:"
-          cat pyproject.toml
           echo "=== START BUILD ==="
-          set +e
           flet build apk --no-rich-output --yes \
             --bundle-id de.cbre.breakapp \
             --product "CBRE Break" \
             --org de.cbre \
             --project CBRE_BREAK \
             .
-          echo "=== EXIT CODE: $? ==="
-          set -e
-          echo "=== gradle.properties ==="
-          cat build/flutter/android/gradle.properties || true
           echo "=== BUILD FINISHED ==="
+
+      - name: Inspect build outputs
+        run: |
+          echo "=== BUILD TREE ==="
+          find build -maxdepth 4 -type f 2>/dev/null | head -100 || true
+          echo "=== APK SEARCH ==="
+          find . -maxdepth 6 -name "*.apk" 2>/dev/null || true
+          echo "=== GRADLE PROPERTIES ==="
+          cat build/flutter/android/gradle.properties 2>/dev/null || true
 
       - name: Upload APK artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: cbre-break-apk
-          path: build/flutter/android/app/release/app-release.apk
+          path: |
+            build/flutter/android/app/release/app-release.apk
+            build/**/*.apk
           retention-days: 30
-
-      - name: Upload build log on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
-          retention-days: 30
+        continue-on-error: true
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v') && success()
         uses: softprops/action-gh-release@v1
         with:
-          files: build/flutter/android/app/release/app-release.apk
+          files: |
+            build/flutter/android/app/release/app-release.apk
+            build/**/*.apk
           draft: false
           prerelease: false
         env:
