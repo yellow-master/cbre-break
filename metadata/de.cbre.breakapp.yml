@@ -4,12 +4,12 @@ License: GPL-3.0-only
 AutoName: CBRE Break
 Summary: Break-Bestellungen verwalten
 Description: CBRE Break hilft bei der Verwaltung von Break-Bestellungen bei CBRE.
-SourceCode: https://gitlab.com/<DEIN_USERNAME>/cbre-break
-IssueTracker: https://gitlab.com/<DEIN_USERNAME>/cbre-break/issues
+SourceCode: https://github.com/yellow-master/cbre-break
+IssueTracker: https://github.com/yellow-master/cbre-break/issues
 RepoType: PreDistributions
 PreDistributions:
   - name: F-Droid
-    url: https://gitlab.com/<DEIN_USERNAME>/cbre-break/-/releases/v1.0/downloads/app-release.apk
+    url: https://github.com/yellow-master/cbre-break/releases/download/v1.0/app-release.apk
     versionCode: 1
     versionName: 1.0
     signConfig: fdroid

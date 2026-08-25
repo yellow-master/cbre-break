@@ -41,8 +41,8 @@
 - Datenhaltung: Lokale JSON-Datei (`cbre_break_data.json`)
 - Lizenz: **GPL-3.0**
 - Application ID: **de.cbre.breakapp**
-- F-Droid-Build-Modus: **Pre-Distributions** (APK wird lokal gebaut, F-Droid signiert und verteilt)
-- Git-Hosting: **GitLab.com** (vorbereitet)
+- F-Droid-Build-Modus: **Pre-Distributions** (APK wird online via GitHub Actions gebaut)
+- GitHub-Repo: **https://github.com/yellow-master/cbre-break**
 - Android SDK: **36.0.0** mit Build-Tools 36.0.0 und NDK 28.2.13676358
 
 ## Implementierte Features
@@ -82,14 +82,17 @@
 - ✅ **Android SDK 36** installiert (Platform 36, Build-Tools 36.0.0, NDK 28.2.13676358)
 - ✅ **SDK-Lizenzen** akzeptiert
 - ✅ **Bundle-ID** korrigiert: `de.cbre.break` → `de.cbre.breakapp` (Java-Keyword-Problem)
-- ⚠️ **APK-Build BLOCKIERT** – RAM-Mangel (3,4 GiB verfügbar, ≥6 GiB benötigt)
-  - Gradle Daemon stürzt ab mit `OutOfMemoryError: Metaspace`
-  - Build muss auf Rechner mit ≥8 GB RAM fortgesetzt werden
-  - Siehe `FDROID_HANDOFF.md` für vollständige Anleitung zur Fortsetzung
+- ✅ **GitHub Actions Workflow** konfiguriert (`.github/workflows/build-apk.yml`)
+- ✅ **F-Droid Metadaten** erstellt (`metadata/de.cbre.breakapp.yml` mit GitHub-URLs)
+- ✅ **Git-Repo** initialisiert und committet (3 Commits)
 
-**Erwartetes APK (nach erfolgreichem Build):** `build/flutter/android/app/release/app-release.apk`
+**Build-Status:**
+- Lokaler Build auf diesem Rechner (3,4 GB RAM) **nicht möglich**
+- **GitHub Actions** baut die APK online (7 GB RAM verfügbar)
+- Workflow-Trigger: Push auf `main` oder Tags `v*`
+- APK wird als Artifact und GitHub Release gespeichert
 
-**Empfohlener Build-Befehl (auf Rechner mit ≥8 GB RAM):**
+**Empfohlener Build-Befehl (für GitHub Actions oder Rechner mit ≥8 GB RAM):**
 ```bash
 export GRADLE_OPTS="-Xmx2G -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=256m -Dorg.gradle.daemon=false"
 flet build apk --yes \
@@ -98,7 +101,7 @@ flet build apk --yes \
   --build-version 1.0 \
   --build-number 1 \
   --org de.cbre \
-   --project CBRE_BREAK .
+  --project CBRE_BREAK .
 ```
 
 ## Nächste Schritte (F-Droid-Integration)
