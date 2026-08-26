@@ -441,8 +441,12 @@ class CBREBreakApp:
             if self.settings.get("beta_enabled"):
                 def make_tab(num):
                     is_active = self._active_list_id == str(num)
-                    tab_bg = ft.Colors.CYAN_600 if is_active else ft.Colors.TRANSPARENT
-                    tab_text_color = ft.Colors.WHITE if is_active else ft.Colors.BLUE_GREY_800 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
+                    if is_active:
+                        tab_bg = ft.Colors.CYAN_600
+                        tab_text_color = ft.Colors.WHITE
+                    else:
+                        tab_bg = ft.Colors.BLUE_GREY_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800
+                        tab_text_color = ft.Colors.BLUE_GREY_700 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
                     return ft.Container(
                         content=ft.Text(str(num), size=16, weight=ft.FontWeight.BOLD, color=tab_text_color),
                         padding=10,
@@ -498,20 +502,12 @@ class CBREBreakApp:
                 ],
             )
 
-            content_bg = ft.Colors.WHITE if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800
-            content_container = ft.Container(
-                content=self._list_control,
-                expand=True,
-                bgcolor=content_bg,
-                border_radius=ft.BorderRadius(bottom_left=16, bottom_right=16, top_left=0, top_right=0),
-            )
-
             self.page.add(
                 ft.Column(
                     [
                         header_col,
                         ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                        content_container,
+                        self._list_control,
                         ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
                         ft.Row([self._total_label], alignment=ft.MainAxisAlignment.END),
                         bottom_row,
