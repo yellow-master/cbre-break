@@ -428,7 +428,12 @@ class CBREBreakApp:
             padding=10,
             border_radius=16,
             bgcolor=bg_color,
-            border=ft.border.only(left=ft.BorderSide(4, border_color), top=ft.BorderSide(1, ft.Colors.TRANSPARENT), right=ft.BorderSide(1, ft.Colors.TRANSPARENT), bottom=ft.BorderSide(1, ft.Colors.TRANSPARENT)),
+            border=ft.Border(
+                left=ft.BorderSide(4, border_color),
+                top=ft.BorderSide(1, ft.Colors.TRANSPARENT),
+                right=ft.BorderSide(1, ft.Colors.TRANSPARENT),
+                bottom=ft.BorderSide(1, ft.Colors.TRANSPARENT),
+            ),
             shadow=ft.BoxShadow(blur_radius=12, spread_radius=0, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 4)),
         )
         return outer
