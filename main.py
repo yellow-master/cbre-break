@@ -496,6 +496,14 @@ class CBREBreakApp:
                 ],
             )
 
+            content_bg = ft.Colors.WHITE if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800
+            content_container = ft.Container(
+                content=self._list_control,
+                expand=True,
+                bgcolor=content_bg,
+                border_radius=ft.BorderRadius(bottom_left=16, bottom_right=16, top_left=0, top_right=0),
+            )
+
             self.page.add(
                 ft.Column(
                     [
