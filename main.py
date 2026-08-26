@@ -23,7 +23,7 @@ class CBREBreakApp:
         self.page.theme_mode = ft.ThemeMode.LIGHT
         self.page.window_width = 400
         self.page.window_height = 800
-        self.page.padding = 12
+        self.page.padding = 10
 
         self.products = []
         self.people = []
@@ -32,6 +32,7 @@ class CBREBreakApp:
         self.editing = False
         self._list_control = None
         self._total_label = None
+        self._expanded_groups = set()
 
         self.show_loading()
         self.page.update()
@@ -122,44 +123,42 @@ class CBREBreakApp:
 
             header = ft.Row(
                 [
-                    ft.IconButton(icon=ft.icons.Icons.EDIT, on_click=self.edit_list, tooltip="Bearbeiten"),
-                    ft.IconButton(icon=ft.icons.Icons.ADD, on_click=self.new_option, tooltip="Neue Liste"),
+                    ft.IconButton(icon=ft.icons.Icons.EDIT, on_click=self.edit_list, tooltip="Bearbeiten", icon_size=20),
+                    ft.IconButton(icon=ft.icons.Icons.ADD, on_click=self.show_input_view, tooltip="Eintrag hinzufügen", icon_size=20),
                 ],
-                alignment=ft.MainAxisAlignment.START,
-                spacing=8,
+                spacing=4,
             )
 
             top_right = ft.Row(
                 [
-                    ft.IconButton(icon=ft.icons.Icons.INVENTORY_2, on_click=self.add_product_dialog, tooltip="Produkt verwalten"),
-                    ft.IconButton(icon=ft.icons.Icons.PEOPLE, on_click=self.add_person_dialog, tooltip="Person verwalten"),
+                    ft.IconButton(icon=ft.icons.Icons.INVENTORY_2, on_click=self.add_product_dialog, tooltip="Produkte", icon_size=20),
+                    ft.IconButton(icon=ft.icons.Icons.PEOPLE, on_click=self.add_person_dialog, tooltip="Personen", icon_size=20),
                 ],
-                alignment=ft.MainAxisAlignment.END,
-                spacing=8,
+                spacing=4,
             )
 
             title_row = ft.Row(
                 [
-                    ft.Text("CBRE Break", size=22, weight=ft.FontWeight.BOLD, expand=1),
+                    ft.Text("CBRE Break", size=18, weight=ft.FontWeight.BOLD, expand=1),
                     top_right,
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             )
 
-            header_col = ft.Column([header, title_row], spacing=6)
+            header_col = ft.Column([header, title_row], spacing=4)
 
-            self._list_control = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO, expand=True)
+            self._list_control = ft.Column(spacing=6, scroll=ft.ScrollMode.AUTO, expand=True)
 
             if not self.current_list:
                 self._list_control.controls.append(
                     ft.Container(
-                        content=ft.Text("Keine Einträge vorhanden.", size=16, text_align=ft.TextAlign.CENTER),
-                        padding=20,
+                        content=ft.Text("Keine Einträge vorhanden.", size=14, text_align=ft.TextAlign.CENTER),
+                        padding=16,
                     )
                 )
             else:
-                for group in self.current_list:
-                    self._list_control.controls.append(self._build_group_card(group))
+                for idx, group in enumerate(self.current_list):
+                    self._list_control.controls.append(self._build_group_card(group, idx))
 
             total = 0
             for group in self.current_list:
@@ -167,7 +166,7 @@ class CBREBreakApp:
                     if not item.get("paid", False):
                         total += item.get("price", 0) * item.get("quantity", 1)
 
-            self._total_label = ft.Text(f"Gesamtpreis: {total:.2f} €", size=18, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, expand=1)
+            self._total_label = ft.Text(f"Gesamtpreis: {total:.2f} €", size=16, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, expand=1)
 
             bottom_row = ft.Row(
                 [
@@ -175,24 +174,22 @@ class CBREBreakApp:
                         icon=ft.icons.Icons.WB_SUNNY if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.Icons.NIGHTLIGHT,
                         on_click=self.toggle_theme,
                         tooltip="Dark Mode",
-                        icon_size=24,
+                        icon_size=22,
                     ),
-                    ft.ElevatedButton("Eintrag hinzufügen", on_click=self.show_input_view, expand=3, height=48),
                 ],
-                spacing=10,
             )
 
             self.page.add(
                 ft.Column(
                     [
                         header_col,
-                        ft.Divider(),
+                        ft.Divider(height=1),
                         ft.Container(content=self._list_control, expand=True),
-                        ft.Divider(),
+                        ft.Divider(height=1),
                         ft.Row([self._total_label], alignment=ft.MainAxisAlignment.END),
                         bottom_row,
                     ],
-                    spacing=10,
+                    spacing=8,
                     expand=True,
                 )
             )
@@ -201,80 +198,98 @@ class CBREBreakApp:
             log(f"build_main_view error: {traceback.format_exc()}")
             raise
 
-    def _build_group_card(self, group):
+    def _build_group_card(self, group, idx):
         name = group.get("name", "")
         items = group.get("items", [])
         group_paid = all(item.get("paid", False) for item in items) if items else False
+        group_total = sum(item.get("price", 0) * item.get("quantity", 1) for item in items)
+        is_expanded = idx in self._expanded_groups
+
+        expand_icon = ft.icons.Icons.EXPAND_LESS if is_expanded else ft.icons.Icons.CHEVRON_RIGHT
 
         name_row = ft.Row(
             [
-                ft.Text(name, size=17, weight=ft.FontWeight.BOLD, expand=1),
-                ft.Text("bezahlt" if group_paid else "offen", size=12, color=ft.Colors.GREEN_600 if group_paid else ft.Colors.ORANGE_600),
+                ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=18, tooltip="Aufklappen"),
+                ft.Text(name, size=15, weight=ft.FontWeight.BOLD, expand=1),
+                ft.Text(f"{group_total:.2f} €", size=14, text_align=ft.TextAlign.END),
+                ft.Text("bezahlt" if group_paid else "offen", size=11, color=ft.Colors.GREEN_600 if group_paid else ft.Colors.ORANGE_600),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         )
 
-        if self.editing:
-            item_controls = []
-            for item_idx, item in enumerate(items):
-                product = item.get("product", "")
-                price = item.get("price", 0)
-                quantity = item.get("quantity", 1)
-                paid = item.get("paid", False)
+        if is_expanded:
+            if self.editing:
+                item_controls = []
+                for item_idx, item in enumerate(items):
+                    product = item.get("product", "")
+                    price = item.get("price", 0)
+                    quantity = item.get("quantity", 1)
+                    paid = item.get("paid", False)
 
-                item_card = ft.Container(
-                    content=ft.Column(
+                    item_card = ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.TextField(value=product, label="Produkt", text_size=13, height=40, on_change=self._make_item_field_changer(group, item_idx, "product")),
+                                ft.Row(
+                                    [
+                                        ft.TextField(value=str(price), label="Preis", text_size=13, height=40, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "price"), expand=1),
+                                        ft.TextField(value=str(quantity), label="Menge", text_size=13, height=40, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "quantity"), width=70),
+                                        ft.Checkbox(value=paid, on_change=lambda e, g=group, i=item_idx: self.toggle_item_paid(g, i, e.control.value)),
+                                        ft.IconButton(icon=ft.icons.Icons.DELETE, icon_color=ft.Colors.RED, icon_size=18, on_click=lambda e, g=group, i=item_idx: self.delete_item(g, i)),
+                                    ],
+                                    spacing=4,
+                                ),
+                            ],
+                            spacing=4,
+                        ),
+                        padding=6,
+                        border_radius=6,
+                    )
+                    item_controls.append(item_card)
+
+                add_btn = ft.ElevatedButton(
+                    "Produkt hinzufügen",
+                    icon=ft.icons.Icons.ADD,
+                    on_click=lambda e, g=group: self.add_item_to_group(g),
+                    height=40,
+                    style=ft.ButtonStyle(padding=8),
+                )
+                content = ft.Column(item_controls + [add_btn], spacing=4)
+                card = ft.Container(content=content, padding=8, border_radius=8, bgcolor=ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900)
+            else:
+                item_rows = []
+                for item in items:
+                    product = item.get("product", "")
+                    price = item.get("price", 0)
+                    quantity = item.get("quantity", 1)
+                    paid = item.get("paid", False)
+                    line_total = price * quantity
+
+                    row = ft.Row(
                         [
-                            ft.TextField(value=product, label="Produkt", text_size=14, height=44, on_change=self._make_item_field_changer(group, item_idx, "product")),
-                            ft.Row(
-                                [
-                                    ft.TextField(value=str(price), label="Preis", text_size=14, height=44, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "price"), expand=1),
-                                    ft.TextField(value=str(quantity), label="Menge", text_size=14, height=44, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "quantity"), width=80),
-                                    ft.Checkbox(value=paid, label="bezahlt", on_change=lambda e, g=group, i=item_idx: self.toggle_item_paid(g, i, e.control.value)),
-                                    ft.IconButton(icon=ft.icons.Icons.DELETE, icon_color=ft.Colors.RED, icon_size=20, on_click=lambda e, g=group, i=item_idx: self.delete_item(g, i)),
-                                ],
-                                spacing=6,
-                            ),
+                            ft.Checkbox(value=paid, disabled=True, check_color=ft.Colors.GREEN_600),
+                            ft.Text(f"{quantity}x {product}", expand=1, size=13),
+                            ft.Text(f"{line_total:.2f} €", size=13, text_align=ft.TextAlign.END),
                         ],
                         spacing=6,
-                    ),
-                    padding=8,
-                    border_radius=8,
-                )
-                item_controls.append(item_card)
+                    )
+                    item_rows.append(row)
 
-            add_btn = ft.ElevatedButton(
-                "Produkt hinzufügen",
-                icon=ft.icons.Icons.ADD,
-                on_click=lambda e, g=group: self.add_item_to_group(g),
-                height=44,
-            )
-            content = ft.Column(item_controls + [add_btn], spacing=6)
-            card = ft.Container(content=content, padding=10, border_radius=10, bgcolor=ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900)
+                content = ft.Column(item_rows, spacing=2)
+                opacity_val = 0.5 if group_paid else 1.0
+                card = ft.Container(content=content, padding=6, border_radius=8, opacity=opacity_val)
         else:
-            item_rows = []
-            for item_idx, item in enumerate(items):
-                product = item.get("product", "")
-                price = item.get("price", 0)
-                quantity = item.get("quantity", 1)
-                paid = item.get("paid", False)
-                line_total = price * quantity
+            content = ft.Container(padding=ft.padding.only(left=36))
+            card = ft.Container(content=content, padding=6, border_radius=8)
 
-                row = ft.Row(
-                    [
-                        ft.Checkbox(value=paid, disabled=True),
-                        ft.Text(f"{quantity}x {product}", expand=1, size=15),
-                        ft.Text(f"{line_total:.2f} €", size=15, text_align=ft.TextAlign.END),
-                    ],
-                    spacing=10,
-                )
-                item_rows.append(row)
+        return ft.Container(content=ft.Column([name_row, ft.Divider(height=1, color=ft.Colors.TRANSPARENT), card], spacing=4), padding=8, border_radius=10)
 
-            content = ft.Column(item_rows, spacing=4)
-            opacity_val = 0.45 if group_paid else 1.0
-            card = ft.Container(content=content, padding=10, border_radius=10, opacity=opacity_val, on_click=lambda e, g=group: self.toggle_group_paid(g))
-
-        return ft.Container(content=ft.Column([name_row, ft.Divider(height=1), content], spacing=6), padding=12, border_radius=12)
+    def toggle_group_expand(self, idx):
+        if idx in self._expanded_groups:
+            self._expanded_groups.discard(idx)
+        else:
+            self._expanded_groups.add(idx)
+        self._refresh_list()
 
     def add_item_to_group(self, group):
         try:
@@ -312,13 +327,13 @@ class CBREBreakApp:
             if not self.current_list:
                 self._list_control.controls.append(
                     ft.Container(
-                        content=ft.Text("Keine Einträge vorhanden.", size=16, text_align=ft.TextAlign.CENTER),
-                        padding=20,
+                        content=ft.Text("Keine Einträge vorhanden.", size=14, text_align=ft.TextAlign.CENTER),
+                        padding=16,
                     )
                 )
             else:
-                for group in self.current_list:
-                    self._list_control.controls.append(self._build_group_card(group))
+                for idx, group in enumerate(self.current_list):
+                    self._list_control.controls.append(self._build_group_card(group, idx))
             self._update_total()
             self.page.update()
 
@@ -351,6 +366,8 @@ class CBREBreakApp:
             log(f"toggle_item_paid error: {traceback.format_exc()}")
 
     def delete_item(self, group, item_idx):
+        if not self.editing:
+            return
         try:
             if 0 <= item_idx < len(group.get("items", [])):
                 group["items"].pop(item_idx)
@@ -374,17 +391,17 @@ class CBREBreakApp:
         self.page.add(
             ft.Column(
                 [
-                    ft.Text("Neue Liste", size=20, weight=ft.FontWeight.BOLD),
+                    ft.Text("Neue Liste", size=18, weight=ft.FontWeight.BOLD),
                     ft.Text("Alte Liste löschen? Personen und Produkte bleiben erhalten."),
                     ft.Row(
                         [
-                            ft.ElevatedButton("Nein", on_click=self._confirm_new_list_false, height=48, expand=1),
-                            ft.ElevatedButton("Ja", on_click=self._confirm_new_list_true, height=48, expand=1),
+                            ft.ElevatedButton("Nein", on_click=self._confirm_new_list_false, height=44, expand=1),
+                            ft.ElevatedButton("Ja", on_click=self._confirm_new_list_true, height=44, expand=1),
                         ],
-                        spacing=10,
+                        spacing=8,
                     ),
                 ],
-                spacing=20,
+                spacing=16,
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
@@ -416,31 +433,33 @@ class CBREBreakApp:
         try:
             self.page.clean()
 
-            self.name_field = ft.TextField(label="Name", expand=True, height=50, text_size=16, on_change=self.on_name_change)
-            self.product_field = ft.TextField(label="Produkt", expand=True, on_change=self.on_product_change, height=50, text_size=16)
-            self.price_field = ft.TextField(label="Preis", expand=True, keyboard_type=ft.KeyboardType.NUMBER, height=50, text_size=16)
-            self.quantity_field = ft.TextField(label="Menge", value="1", expand=True, keyboard_type=ft.KeyboardType.NUMBER, height=50, text_size=16)
+            self.name_field = ft.TextField(label="Name", expand=True, height=44, text_size=15, on_change=self.on_name_change)
+            self.product_field = ft.TextField(label="Produkt", expand=True, on_change=self.on_product_change, height=44, text_size=15)
+            self.price_field = ft.TextField(label="Preis", expand=True, keyboard_type=ft.KeyboardType.NUMBER, height=44, text_size=15)
+            self.quantity_field = ft.TextField(label="Menge", value="1", expand=True, keyboard_type=ft.KeyboardType.NUMBER, height=44, text_size=15)
 
-            self.name_suggestion_list = ft.Column(spacing=4, visible=False)
-            self.product_suggestion_list = ft.Column(spacing=4, visible=False)
+            self.name_suggestion_list = ft.Column(spacing=2, visible=False)
+            self.product_suggestion_list = ft.Column(spacing=2, visible=False)
 
             input_card = ft.Column(
                 [
-                    ft.Text("Neuer Eintrag", size=20, weight=ft.FontWeight.BOLD),
+                    ft.Text("Neuer Eintrag", size=18, weight=ft.FontWeight.BOLD),
                     self.name_field,
                     self.name_suggestion_list,
                     self.product_field,
                     self.product_suggestion_list,
-                    ft.Row([self.price_field, self.quantity_field], spacing=10),
+                    ft.Row([self.price_field, self.quantity_field], spacing=6),
                     ft.Row(
                         [
-                            ft.ElevatedButton("Weiter", on_click=self.on_continue, height=50, expand=1),
-                            ft.ElevatedButton("Fertig", on_click=self.on_finish, height=50, expand=1),
+                            ft.ElevatedButton("Weiterer Artikel", on_click=self.on_continue, height=44, expand=1),
+                            ft.ElevatedButton("Neue Person", on_click=self.on_new_person, height=44, expand=1),
                         ],
+                        spacing=6,
                     ),
+                    ft.ElevatedButton("Fertig", on_click=self.on_finish, height=44, expand=1),
                 ],
-                spacing=10,
-                width=350,
+                spacing=6,
+                width=360,
             )
 
             self.page.add(
@@ -463,9 +482,9 @@ class CBREBreakApp:
         if matches:
             self.name_suggestion_list.controls = [
                 ft.Container(
-                    content=ft.Text(p, size=16),
-                    padding=12,
-                    border_radius=8,
+                    content=ft.Text(p, size=14),
+                    padding=10,
+                    border_radius=6,
                     bgcolor=ft.Colors.BLUE_50,
                     on_click=lambda e, p=p: self.select_name(p),
                 )
@@ -500,13 +519,13 @@ class CBREBreakApp:
                 ft.Container(
                     content=ft.Row(
                         [
-                            ft.Text(p["name"], size=16, expand=1),
-                            ft.Text(f"{p['price']:.2f} €", size=16),
+                            ft.Text(p["name"], size=14, expand=1),
+                            ft.Text(f"{p['price']:.2f} €", size=14),
                         ],
-                        spacing=10,
+                        spacing=6,
                     ),
-                    padding=12,
-                    border_radius=8,
+                    padding=10,
+                    border_radius=6,
                     bgcolor=ft.Colors.BLUE_50,
                     on_click=lambda e, p=p: self.select_product(p),
                 )
@@ -564,6 +583,48 @@ class CBREBreakApp:
             log("on_continue end")
         except Exception:
             log(f"on_continue error: {traceback.format_exc()}")
+
+    def on_new_person(self, e):
+        log("on_new_person start")
+        try:
+            if self.name_field.value.strip():
+                if not self.validate_entry():
+                    return
+                try:
+                    quantity = int(self.quantity_field.value.replace(",", "."))
+                except ValueError:
+                    quantity = 1
+                entry = {
+                    "product": self.product_field.value.strip(),
+                    "price": float(self.price_field.value.replace(",", ".")),
+                    "quantity": max(1, quantity),
+                    "paid": False,
+                }
+                name = self.name_field.value.strip()
+                existing = next((g for g in self.current_list if g["name"] == name), None)
+                if existing:
+                    existing["items"].append(entry)
+                else:
+                    self.current_list.append({"name": name, "items": [entry]})
+                if name not in self.people:
+                    self.people.append(name)
+                self.save_data()
+            self.name_field.value = ""
+            self.product_field.value = ""
+            self.price_field.value = ""
+            self.quantity_field.value = "1"
+            self.name_field.error_text = ""
+            self.product_field.error_text = ""
+            self.price_field.error_text = ""
+            self.quantity_field.error_text = ""
+            self.name_suggestion_list.visible = False
+            self.name_suggestion_list.controls = []
+            self.product_suggestion_list.visible = False
+            self.product_suggestion_list.controls = []
+            self.page.update()
+            log("on_new_person end")
+        except Exception:
+            log(f"on_new_person error: {traceback.format_exc()}")
 
     def on_finish(self, e):
         log("on_finish start")
@@ -653,24 +714,24 @@ class CBREBreakApp:
 
             header = ft.Row(
                 [
-                    ft.IconButton(icon=ft.icons.Icons.CLOSE, on_click=self._manager_close, tooltip="Schließen"),
-                    ft.Text(title, size=20, weight=ft.FontWeight.BOLD),
+                    ft.IconButton(icon=ft.icons.Icons.CLOSE, on_click=self._manager_close, tooltip="Schließen", icon_size=20),
+                    ft.Text(title, size=18, weight=ft.FontWeight.BOLD),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             )
 
-            self.manager_list = ft.Column(spacing=6, scroll=ft.ScrollMode.AUTO, expand=True)
-            self.manager_input_name = ft.TextField(label="Name", expand=True, height=48, text_size=16)
+            self.manager_list = ft.Column(spacing=4, scroll=ft.ScrollMode.AUTO, expand=True)
+            self.manager_input_name = ft.TextField(label="Name", expand=True, height=44, text_size=15)
             if item_type == "produkt":
-                self.manager_input_price = ft.TextField(label="Preis", expand=True, height=48, text_size=16, keyboard_type=ft.KeyboardType.NUMBER)
+                self.manager_input_price = ft.TextField(label="Preis", expand=True, height=44, text_size=15, keyboard_type=ft.KeyboardType.NUMBER)
 
-            add_btn = ft.ElevatedButton("Hinzufügen", on_click=self._manager_add, height=48)
+            add_btn = ft.ElevatedButton("Hinzufügen", on_click=self._manager_add, height=44)
             if item_type == "produkt":
-                input_row = ft.Row([self.manager_input_name, self.manager_input_price], spacing=8)
-                input_card = ft.Column([input_row, add_btn], spacing=8)
+                input_row = ft.Row([self.manager_input_name, self.manager_input_price], spacing=6)
+                input_card = ft.Column([input_row, add_btn], spacing=6)
             else:
                 input_row = ft.Row([self.manager_input_name])
-                input_card = ft.Column([input_row, add_btn], spacing=8)
+                input_card = ft.Column([input_row, add_btn], spacing=6)
 
             main_col = ft.Column(
                 [
@@ -680,7 +741,7 @@ class CBREBreakApp:
                     ft.Divider(),
                     input_card,
                 ],
-                spacing=10,
+                spacing=8,
                 expand=True,
             )
 
@@ -707,21 +768,21 @@ class CBREBreakApp:
                 if self.manager_item_type == "produkt":
                     row = ft.Row(
                         [
-                            ft.Text(item.get("name", ""), expand=1, size=16),
-                            ft.Text(f"{item.get('price', 0):.2f} €", size=16),
-                            ft.IconButton(icon=ft.icons.Icons.DELETE, icon_color=ft.Colors.RED, icon_size=20, on_click=lambda e, i=idx: self._manager_delete(i)),
+                            ft.Text(item.get("name", ""), expand=1, size=14),
+                            ft.Text(f"{item.get('price', 0):.2f} €", size=14),
+                            ft.IconButton(icon=ft.icons.Icons.DELETE, icon_color=ft.Colors.RED, icon_size=18, on_click=lambda e, i=idx: self._manager_delete(i)),
                         ],
-                        spacing=8,
+                        spacing=6,
                     )
                 else:
                     row = ft.Row(
                         [
-                            ft.Text(item, expand=1, size=16),
-                            ft.IconButton(icon=ft.icons.Icons.DELETE, icon_color=ft.Colors.RED, icon_size=20, on_click=lambda e, i=idx: self._manager_delete(i)),
+                            ft.Text(item, expand=1, size=14),
+                            ft.IconButton(icon=ft.icons.Icons.DELETE, icon_color=ft.Colors.RED, icon_size=18, on_click=lambda e, i=idx: self._manager_delete(i)),
                         ],
-                        spacing=8,
+                        spacing=6,
                     )
-                container = ft.Container(content=row, padding=12, border_radius=8)
+                container = ft.Container(content=row, padding=10, border_radius=6)
                 self.manager_list.controls.append(container)
             log("_refresh_manager_list end")
         except Exception:
