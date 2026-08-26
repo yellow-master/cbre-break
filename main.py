@@ -413,21 +413,21 @@ class CBREBreakApp:
                     ),
                 ]
                 + ([
-                    ft.IconButton(
-                        icon=ft.icons.Icons.NUMBER_1 if self._active_list_id == "1" else ft.icons.Icons.CIRCLE,
+                    ft.Container(
+                        content=ft.Text("1", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.CYAN_700 if self._active_list_id == "1" else ft.Colors.GREY_400),
+                        padding=8,
+                        border_radius=12,
+                        bgcolor=ft.Colors.CYAN_100 if self._active_list_id == "1" and self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.TRANSPARENT,
                         on_click=lambda e: self._switch_list(1),
                         tooltip=self.t("list_1"),
-                        icon_size=icon_size,
-                        style=ft.ButtonStyle(bgcolor=ft.Colors.CYAN_100 if self._active_list_id == "1" and self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.TRANSPARENT, shape=ft.CircleBorder()),
-                        icon_color=ft.Colors.CYAN_700 if self._active_list_id == "1" else ft.Colors.GREY_400,
                     ),
-                    ft.IconButton(
-                        icon=ft.icons.Icons.NUMBER_2 if self._active_list_id == "2" else ft.icons.Icons.CIRCLE,
+                    ft.Container(
+                        content=ft.Text("2", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.CYAN_700 if self._active_list_id == "2" else ft.Colors.GREY_400),
+                        padding=8,
+                        border_radius=12,
+                        bgcolor=ft.Colors.CYAN_100 if self._active_list_id == "2" and self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.TRANSPARENT,
                         on_click=lambda e: self._switch_list(2),
                         tooltip=self.t("list_2"),
-                        icon_size=icon_size,
-                        style=ft.ButtonStyle(bgcolor=ft.Colors.CYAN_100 if self._active_list_id == "2" and self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.TRANSPARENT, shape=ft.CircleBorder()),
-                        icon_color=ft.Colors.CYAN_700 if self._active_list_id == "2" else ft.Colors.GREY_400,
                     ),
                 ] if self.settings.get("beta_enabled") else []),
                 spacing=header_spacing,
