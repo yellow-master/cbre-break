@@ -156,7 +156,6 @@ class CBREBreakApp:
                     ft.Container(
                         content=ft.Text("Keine Einträge vorhanden.", size=16, text_align=ft.TextAlign.CENTER),
                         padding=20,
-                        alignment=ft.alignment.center,
                     )
                 )
             else:
@@ -282,7 +281,6 @@ class CBREBreakApp:
                     ft.Container(
                         content=ft.Text("Keine Einträge vorhanden.", size=16, text_align=ft.TextAlign.CENTER),
                         padding=20,
-                        alignment=ft.alignment.center,
                     )
                 )
             else:
