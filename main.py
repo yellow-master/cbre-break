@@ -444,7 +444,7 @@ class CBREBreakApp:
                                 ft.Row(
                                     [
                                         ft.TextField(value=str(price), label=self.t("price"), text_size=14, height=44, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "price"), expand=1, border_radius=12),
-                                        ft.TextField(value=str(quantity), label=self.t("quantity"), text_size=14, height=44, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "quantity"), width=72, border_radius=12),
+                                        ft.TextField(value=str(quantity), label=self.t("quantity"), text_size=14, height=44, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "quantity"), expand=1, border_radius=12),
                                         ft.Checkbox(value=paid, on_change=lambda e, g=group, i=item_idx: self.toggle_item_paid(g, i, e.control.value)),
                                         ft.IconButton(icon=ft.icons.Icons.DELETE_OUTLINE, icon_color=ft.Colors.RED_400, icon_size=20, on_click=lambda e, g=group, i=item_idx: self.delete_item(g, i)),
                                     ],
@@ -817,7 +817,6 @@ class CBREBreakApp:
                     ft.ElevatedButton(self.t("finish"), on_click=self.on_finish, height=48, expand=1, style=ft.ButtonStyle(bgcolor=ft.Colors.GREEN_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREEN_900, shape=ft.RoundedRectangleBorder(radius=14))),
                 ],
                 spacing=10,
-                width=360,
             )
 
             self.page.add(
