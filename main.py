@@ -402,25 +402,16 @@ class CBREBreakApp:
                 spacing=header_spacing,
             )
 
-            tab_row = ft.Row(
+            top_right = ft.Row(
                 [
-                    ft.Container(
-                        content=ft.Text("1", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE if self._active_list_id == "1" else ft.Colors.GREY_600),
-                        padding=8,
-                        border_radius=ft.BorderRadius(top_left=12, top_right=12, bottom_right=4, bottom_left=4),
-                        bgcolor=ft.Colors.CYAN_600 if self._active_list_id == "1" else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700,
-                        on_click=lambda e: self._switch_list(1),
-                        tooltip=self.t("list_1"),
+                    ft.IconButton(
+                        icon=ft.icons.Icons.REFRESH,
+                        on_click=self.reset_list,
+                        tooltip=self.t("reset"),
+                        icon_size=icon_size,
+                        style=ft.ButtonStyle(bgcolor=ft.Colors.RED_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.RED_900, shape=ft.CircleBorder()),
                     ),
-                    ft.Container(
-                        content=ft.Text("2", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE if self._active_list_id == "2" else ft.Colors.GREY_600),
-                        padding=8,
-                        border_radius=ft.BorderRadius(top_left=12, top_right=12, bottom_right=4, bottom_left=4),
-                        bgcolor=ft.Colors.CYAN_600 if self._active_list_id == "2" else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700,
-                        on_click=lambda e: self._switch_list(2),
-                        tooltip=self.t("list_2"),
-                    ),
-                ] if self.settings.get("beta_enabled") else [],
+                ],
                 spacing=header_spacing,
             )
 
@@ -432,7 +423,24 @@ class CBREBreakApp:
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             )
 
-            header_col = ft.Column([header, title_row] + ([tab_row] if self.settings.get("beta_enabled") else []), spacing=self._ui(8, 6))
+            header_col = ft.Column(
+                [header, title_row] + ([ft.Row([ft.Container(
+                        content=ft.Text("1", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE if self._active_list_id == "1" else ft.Colors.GREY_600),
+                        padding=8,
+                        border_radius=ft.BorderRadius(top_left=12, top_right=12, bottom_right=4, bottom_left=4),
+                        bgcolor=ft.Colors.CYAN_600 if self._active_list_id == "1" else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700,
+                        on_click=lambda e: self._switch_list(1),
+                        tooltip=self.t("list_1"),
+                    ), ft.Container(
+                        content=ft.Text("2", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE if self._active_list_id == "2" else ft.Colors.GREY_600),
+                        padding=8,
+                        border_radius=ft.BorderRadius(top_left=12, top_right=12, bottom_right=4, bottom_left=4),
+                        bgcolor=ft.Colors.CYAN_600 if self._active_list_id == "2" else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700,
+                        on_click=lambda e: self._switch_list(2),
+                        tooltip=self.t("list_2"),
+                    )], spacing=header_spacing)] if self.settings.get("beta_enabled") else []),
+                spacing=self._ui(8, 6),
+            )
 
             self._list_control = ft.Column(spacing=card_spacing, scroll=ft.ScrollMode.AUTO, expand=True)
 
