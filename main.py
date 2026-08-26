@@ -425,6 +425,55 @@ class CBREBreakApp:
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             )
 
+            self._total_label = ft.Text(f"{self.t('total_price')} {total:.2f} €", size=total_size, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, expand=1)
+
+            bottom_row = ft.Row(
+                [
+                    ft.IconButton(
+                        icon=ft.icons.Icons.WB_SUNNY if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.Icons.NIGHTLIGHT,
+                        on_click=self.toggle_theme,
+                        tooltip=self.t("dark_mode"),
+                        icon_size=self._ui(24, 20),
+                        style=ft.ButtonStyle(bgcolor=ft.Colors.AMBER_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.AMBER_900, shape=ft.CircleBorder()),
+                    ),
+                    ft.Text("By M.M", size=self._ui(11, 10), weight=ft.FontWeight.W_400, color=ft.Colors.GREY_400 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_500, expand=1, text_align=ft.TextAlign.RIGHT),
+                ],
+            )
+
+            self._list_control = ft.Column(spacing=card_spacing, scroll=ft.ScrollMode.AUTO, expand=True)
+
+            if not self._current_list():
+                self._list_control.controls.append(
+                    ft.Container(
+                        content=ft.Text(self.t("no_entries"), size=self._ui(15, 13), text_align=ft.TextAlign.CENTER, color=ft.Colors.BLUE_GREY_500 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_400),
+                        padding=self._ui(32, 24),
+                    )
+                )
+            else:
+                for idx, group in enumerate(self._current_list()):
+                    self._list_control.controls.append(self._build_group_card(group, idx))
+
+            total = 0
+            for group in self._current_list():
+                for item in group.get("items", []):
+                    if not item.get("paid", False):
+                        total += item.get("price", 0) * item.get("quantity", 1)
+
+            self._total_label = ft.Text(f"{self.t('total_price')} {total:.2f} €", size=total_size, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, expand=1)
+
+            bottom_row = ft.Row(
+                [
+                    ft.IconButton(
+                        icon=ft.icons.Icons.WB_SUNNY if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.Icons.NIGHTLIGHT,
+                        on_click=self.toggle_theme,
+                        tooltip=self.t("dark_mode"),
+                        icon_size=self._ui(24, 20),
+                        style=ft.ButtonStyle(bgcolor=ft.Colors.AMBER_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.AMBER_900, shape=ft.CircleBorder()),
+                    ),
+                    ft.Text("By M.M", size=self._ui(11, 10), weight=ft.FontWeight.W_400, color=ft.Colors.GREY_400 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_500, expand=1, text_align=ft.TextAlign.RIGHT),
+                ],
+            )
+
             if self.settings.get("beta_enabled"):
                 def make_tab(num, label):
                     is_active = self._active_list_id == str(num)
@@ -474,41 +523,8 @@ class CBREBreakApp:
                     spacing=section_spacing,
                     expand=True,
                 )
-
-            if not self._current_list():
-                self._list_control.controls.append(
-                    ft.Container(
-                        content=ft.Text(self.t("no_entries"), size=self._ui(15, 13), text_align=ft.TextAlign.CENTER, color=ft.Colors.BLUE_GREY_500 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_400),
-                        padding=self._ui(32, 24),
-                    )
-                )
-            else:
-                for idx, group in enumerate(self._current_list()):
-                    self._list_control.controls.append(self._build_group_card(group, idx))
-
-            total = 0
-            for group in self._current_list():
-                for item in group.get("items", []):
-                    if not item.get("paid", False):
-                        total += item.get("price", 0) * item.get("quantity", 1)
-
-            self._total_label = ft.Text(f"{self.t('total_price')} {total:.2f} €", size=total_size, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, expand=1)
-
-            bottom_row = ft.Row(
-                [
-                    ft.IconButton(
-                        icon=ft.icons.Icons.WB_SUNNY if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.Icons.NIGHTLIGHT,
-                        on_click=self.toggle_theme,
-                        tooltip=self.t("dark_mode"),
-                        icon_size=self._ui(24, 20),
-                        style=ft.ButtonStyle(bgcolor=ft.Colors.AMBER_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.AMBER_900, shape=ft.CircleBorder()),
-                    ),
-                    ft.Text("By M.M", size=self._ui(11, 10), weight=ft.FontWeight.W_400, color=ft.Colors.GREY_400 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_500, expand=1, text_align=ft.TextAlign.RIGHT),
-                ],
-            )
-
-            self.page.add(main_content)
             log("build_main_view end")
+            self.page.add(main_content)
         except Exception:
             log(f"build_main_view error: {traceback.format_exc()}")
             raise
