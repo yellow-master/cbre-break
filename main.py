@@ -122,7 +122,6 @@ class CBREBreakApp:
         self.page.window_width = 400
         self.page.window_height = 800
         self.page.padding = 10
-        self.page.bgcolor = ft.Colors.WHITE if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900
 
         self.products = []
         self.people = []
@@ -442,16 +441,14 @@ class CBREBreakApp:
             if self.settings.get("beta_enabled"):
                 def make_tab(num):
                     is_active = self._active_list_id == str(num)
-                    tab_bg = ft.Colors.CYAN_600 if is_active else ft.Colors.TRANSPARENT
-                    tab_text_color = ft.Colors.WHITE if is_active else ft.Colors.BLUE_GREY_800 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
-                    return ft.Container(
-                        content=ft.Text(str(num), size=16, weight=ft.FontWeight.BOLD, color=tab_text_color),
-                        padding=10,
-                        bgcolor=tab_bg,
-                        on_click=lambda e, n=str(num): self._switch_list(n),
-                        tooltip=self.t(f"list_{num}"),
+                    return ft.TextButton(
+                        str(num),
+                        style=ft.ButtonStyle(
+                            color=ft.Colors.BLUE_GREY_700 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200,
+                            padding=10,
+                        ),
                         width=120,
-                        alignment="center",
+                        on_click=lambda e, n=str(num): self._switch_list(n),
                     )
 
                 tab_row = ft.Row(
@@ -504,7 +501,7 @@ class CBREBreakApp:
                     [
                         header_col,
                         ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                        self._list_control,
+                        content_container,
                         ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
                         ft.Row([self._total_label], alignment=ft.MainAxisAlignment.END),
                         bottom_row,
