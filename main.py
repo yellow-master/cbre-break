@@ -51,10 +51,6 @@ TRANSLATIONS = {
         "quantity_min": "Menge muss >= 1 sein",
         "name_required": "Name erforderlich",
         "product_required": "Produkt erforderlich",
-        "beta": "Beta(Listen)",
-        "list_1": "Liste 1",
-        "list_2": "Liste 2",
-        "list_3": "Liste 3",
     },
     "en": {
         "app_title": "CBRE Break",
@@ -98,10 +94,6 @@ TRANSLATIONS = {
         "quantity_min": "Quantity must be >= 1",
         "name_required": "Name required",
         "product_required": "Product required",
-        "beta": "Beta(Lists)",
-        "list_1": "List 1",
-        "list_2": "List 2",
-        "list_3": "List 3",
     },
 }
 
@@ -125,14 +117,12 @@ class CBREBreakApp:
 
         self.products = []
         self.people = []
-        self._lists = {"1": [], "2": [], "3": []}
-        self._active_list_id = "1"
+        self.current_list = []
         self.settings = {
             "theme_mode": "light",
             "auto_add_products": True,
             "auto_add_persons": True,
             "language": "de",
-            "beta_enabled": False,
         }
         self.editing = False
         self._list_control = None
@@ -164,30 +154,13 @@ class CBREBreakApp:
                     data = json.load(f)
                     self.products = data.get("products", [])
                     self.people = data.get("people", [])
-                    if data.get("current_lists"):
-                        self._lists = data["current_lists"]
-                        self._active_list_id = str(data.get("active_list_id", "1"))
-                    else:
-                        old_list = data.get("current_list", [])
-                        if self._is_flat_list(old_list):
-                            old_list = self._migrate_to_grouped(old_list)
-                        self._lists = {"1": old_list, "2": [], "3": []}
-                        self._active_list_id = "1"
+                    self.current_list = data.get("current_list", [])
                     self.settings = data.get("settings", {"theme_mode": "light"})
+                    if self._is_flat_list(self.current_list):
+                        self.current_list = self._migrate_to_grouped(self.current_list)
             log("load_data end")
         except Exception:
             log(f"load_data error: {traceback.format_exc()}")
-
-    def _current_list(self):
-        return self._lists.get(self._active_list_id, [])
-
-    def _switch_list(self, list_id):
-        list_id = str(list_id)
-        if list_id in self._lists and list_id != self._active_list_id:
-            self._active_list_id = list_id
-            self._expanded_groups.clear()
-            self.save_data()
-            self.build_main_view()
 
     def _is_flat_list(self, data):
         if not data:
@@ -218,8 +191,7 @@ class CBREBreakApp:
                 json.dump({
                     "products": self.products,
                     "people": self.people,
-                    "current_lists": self._lists,
-                    "active_list_id": self._active_list_id,
+                "current_list": self.current_list,
                     "settings": self.settings,
                 }, f, indent=2)
             log("save_data end")
@@ -246,7 +218,6 @@ class CBREBreakApp:
         auto_products_switch = ft.Switch(value=bool(self.settings.get("auto_add_products", True)), on_change=self._on_settings_auto_products_change, active_color=ft.Colors.GREEN_400)
         auto_persons_switch = ft.Switch(value=bool(self.settings.get("auto_add_persons", True)), on_change=self._on_settings_auto_persons_change, active_color=ft.Colors.PURPLE_400)
         language_switch = ft.Switch(value=self.settings.get("language", "de") == "en", on_change=self._on_settings_language_change, active_color=ft.Colors.ORANGE_400)
-        beta_switch = ft.Switch(value=bool(self.settings.get("beta_enabled", False)), on_change=self._on_settings_beta_change, active_color=ft.Colors.CYAN_400)
 
         products_btn = ft.ElevatedButton(self.t("products"), icon=ft.icons.Icons.INVENTORY_2, on_click=lambda e: self._open_manager_from_settings("produkt"), height=self._ui(48, 44), style=ft.ButtonStyle(bgcolor=ft.Colors.ORANGE_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.ORANGE_900, shape=ft.RoundedRectangleBorder(radius=self._ui(14, 12))))
         persons_btn = ft.ElevatedButton(self.t("people"), icon=ft.icons.Icons.PEOPLE, on_click=lambda e: self._open_manager_from_settings("person"), height=self._ui(48, 44), style=ft.ButtonStyle(bgcolor=ft.Colors.PURPLE_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.PURPLE_900, shape=ft.RoundedRectangleBorder(radius=self._ui(14, 12))))
@@ -276,8 +247,6 @@ class CBREBreakApp:
                                 setting_row(ft.icons.Icons.PEOPLE, self.t("auto_add_persons"), auto_persons_switch),
                                 ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
                                 setting_row(ft.icons.Icons.LANGUAGE, self.t("language"), language_switch),
-                                ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                                setting_row(ft.icons.Icons.BUG_REPORT, self.t("beta"), beta_switch),
                             ],
                             spacing=self._ui(12, 10),
                         ),
@@ -329,11 +298,6 @@ class CBREBreakApp:
     def _on_settings_language_change(self, e):
         self.settings["language"] = "en" if e.control.value else "de"
         self.save_data()
-
-    def _on_settings_beta_change(self, e):
-        self.settings["beta_enabled"] = bool(e.control.value)
-        self.save_data()
-        self.show_settings()
 
     def show_loading(self):
         self.page.clean()
@@ -438,37 +402,11 @@ class CBREBreakApp:
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             )
 
-            if self.settings.get("beta_enabled"):
-                def make_tab(num):
-                    is_active = self._active_list_id == str(num)
-                    if is_active:
-                        tab_bg = ft.Colors.CYAN_600
-                        tab_text_color = ft.Colors.WHITE
-                    else:
-                        tab_bg = ft.Colors.BLUE_GREY_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800
-                        tab_text_color = ft.Colors.BLUE_GREY_700 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
-                    return ft.Container(
-                        content=ft.Text(str(num), size=16, weight=ft.FontWeight.BOLD, color=tab_text_color),
-                        padding=10,
-                        bgcolor=tab_bg,
-                        on_click=lambda e, n=str(num): self._switch_list(n),
-                        tooltip=self.t(f"list_{num}"),
-                        width=120,
-                        alignment="center",
-                    )
-
-                tab_row = ft.Row(
-                    [make_tab(1), make_tab(2), make_tab(3)],
-                    spacing=0,
-                )
-
-                header_col = ft.Column([header, title_row, tab_row], spacing=0)
-            else:
-                header_col = ft.Column([header, title_row], spacing=self._ui(8, 6))
+            header_col = ft.Column([header, title_row], spacing=self._ui(8, 6))
 
             self._list_control = ft.Column(spacing=card_spacing, scroll=ft.ScrollMode.AUTO, expand=True)
 
-            if not self._current_list():
+            if not self.current_list:
                 self._list_control.controls.clear()
                 empty_container = ft.Container(
                     content=ft.Text(self.t("no_entries"), size=self._ui(15, 13), text_align=ft.TextAlign.CENTER, color=ft.Colors.BLUE_GREY_500 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_400),
@@ -478,11 +416,11 @@ class CBREBreakApp:
                 self._list_control.controls.append(empty_container)
             else:
                 self._list_control.controls.clear()
-                for idx, group in enumerate(self._current_list()):
+                for idx, group in enumerate(self.current_list):
                     self._list_control.controls.append(self._build_group_card(group, idx))
 
             total = 0
-            for group in self._current_list():
+            for group in self.current_list:
                 for item in group.get("items", []):
                     if not item.get("paid", False):
                         total += item.get("price", 0) * item.get("quantity", 1)
@@ -667,8 +605,8 @@ class CBREBreakApp:
 
     def delete_group(self, group):
         try:
-            if group in self._current_list():
-                self._current_list().remove(group)
+            if group in self.current_list:
+                self.current_list.remove(group)
                 self.save_data()
                 self._refresh_list()
         except Exception:
@@ -733,7 +671,7 @@ class CBREBreakApp:
     def _refresh_list(self):
         if self._list_control:
             self._list_control.controls = []
-            if not self._current_list():
+            if not self.current_list:
                 self._list_control.controls.append(
                     ft.Container(
                         content=ft.Text(self.t("no_entries"), size=15, text_align=ft.TextAlign.CENTER),
@@ -741,7 +679,7 @@ class CBREBreakApp:
                     )
                 )
             else:
-                for idx, group in enumerate(self._current_list()):
+                for idx, group in enumerate(self.current_list):
                     self._list_control.controls.append(self._build_group_card(group, idx))
             if not self._expanded_groups:
                 self._sort_current_list()
@@ -757,13 +695,13 @@ class CBREBreakApp:
             return (False, 0)
 
     def _sort_current_list(self):
-        self._current_list().sort(key=self._group_sort_key)
+        self.current_list.sort(key=self._group_sort_key)
 
     def _update_total(self):
         if not self._total_label:
             return
         total = 0
-        for group in self._current_list():
+        for group in self.current_list:
             for item in group.get("items", []):
                 if not item.get("paid", False):
                     total += item.get("price", 0) * item.get("quantity", 1)
@@ -807,8 +745,8 @@ class CBREBreakApp:
             if 0 <= item_idx < len(group.get("items", [])):
                 group["items"].pop(item_idx)
                 if not group["items"]:
-                    if group in self._current_list():
-                        self._current_list().remove(group)
+                    if group in self.current_list:
+                        self.current_list.remove(group)
                 self.save_data()
                 self._refresh_list()
         except Exception:
@@ -844,7 +782,7 @@ class CBREBreakApp:
         self.build_main_view()
 
     def _reset_confirm(self, e):
-        self._lists[self._active_list_id] = []
+        self.current_list = []
         self.save_data()
         self.build_main_view()
 
@@ -884,7 +822,7 @@ class CBREBreakApp:
 
     def _confirm_new_list_true(self, e):
         log("confirm_new_list_true")
-        self._lists[self._active_list_id] = []
+        self.current_list = []
         self.save_data()
         self.build_main_view()
         self.page.update()
@@ -892,7 +830,7 @@ class CBREBreakApp:
     def edit_list(self, e):
         self.editing = not self.editing
         if self.editing:
-            self._expanded_groups = set(range(len(self._current_list())))
+            self._expanded_groups = set(range(len(self.current_list)))
         else:
             self._expanded_groups.clear()
         self._refresh_list()
@@ -1059,11 +997,11 @@ class CBREBreakApp:
                 "paid": False,
             }
             name = self.name_field.value.strip()
-            existing = next((g for g in self._current_list() if g["name"] == name), None)
+            existing = next((g for g in self.current_list if g["name"] == name), None)
             if existing:
                 existing["items"].append(entry)
             else:
-                self._current_list().append({"name": name, "items": [entry]})
+                self.current_list.append({"name": name, "items": [entry]})
             if self.settings.get("auto_add_persons", True) and name not in self.people:
                 self.people.append(name)
             self._ensure_product_in_catalog(entry["product"], entry["price"])
@@ -1098,11 +1036,11 @@ class CBREBreakApp:
                     "paid": False,
                 }
                 name = self.name_field.value.strip()
-                existing = next((g for g in self._current_list() if g["name"] == name), None)
+                existing = next((g for g in self.current_list if g["name"] == name), None)
                 if existing:
                     existing["items"].append(entry)
                 else:
-                    self._current_list().append({"name": name, "items": [entry]})
+                    self.current_list.append({"name": name, "items": [entry]})
                 if self.settings.get("auto_add_persons", True) and name not in self.people:
                     self.people.append(name)
                 self._ensure_product_in_catalog(entry["product"], entry["price"])
@@ -1139,11 +1077,11 @@ class CBREBreakApp:
                     "paid": False,
                 }
                 name = self.name_field.value.strip()
-                existing = next((g for g in self._current_list() if g["name"] == name), None)
+                existing = next((g for g in self.current_list if g["name"] == name), None)
                 if existing:
                     existing["items"].append(entry)
                 else:
-                    self._current_list().append({"name": name, "items": [entry]})
+                    self.current_list.append({"name": name, "items": [entry]})
                 if self.settings.get("auto_add_persons", True) and name not in self.people:
                     self.people.append(name)
                 self._ensure_product_in_catalog(entry["product"], entry["price"])
