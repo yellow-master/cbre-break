@@ -250,7 +250,7 @@ class CBREBreakApp:
         self.page.theme_mode = ft.ThemeMode.DARK if e.control.value else ft.ThemeMode.LIGHT
         self.settings["theme_mode"] = "dark" if e.control.value else "light"
         self.save_data()
-        self.page.update()
+        self.show_settings()
 
     def _on_settings_auto_products_change(self, e):
         self.settings["auto_add_products"] = bool(e.control.value)
@@ -380,7 +380,7 @@ class CBREBreakApp:
                         icon_size=24,
                         style=ft.ButtonStyle(bgcolor=ft.Colors.AMBER_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.AMBER_900, shape=ft.CircleBorder()),
                     ),
-                    ft.Text("By M.M", size=12, color=ft.Colors.GREY_500 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_400, expand=1, text_align=ft.TextAlign.RIGHT),
+                    ft.Text("By M.M", size=11, weight=ft.FontWeight.W_400, color=ft.Colors.GREY_400 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_500, expand=1, text_align=ft.TextAlign.RIGHT),
                 ],
             )
 
@@ -423,7 +423,7 @@ class CBREBreakApp:
             [
                 ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=22, tooltip=self.t("expand"), style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT), icon_color=icon_color),
                 ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
-                ft.Text(f"{group_total:.2f} €", size=15, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, color=ft.Colors.BLUE_GREY_700 if not group_paid else ft.Colors.GREEN_700),
+                ft.Text(f"{group_total:.2f} €", size=15, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, color=ft.Colors.BLUE_GREY_700 if not group_paid else ft.Colors.GREEN_700 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_300 if not group_paid else ft.Colors.GREEN_400),
                 ft.Text(self.t("paid") if group_paid else self.t("unpaid"), size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_700 if group_paid else ft.Colors.ORANGE_700),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -494,7 +494,7 @@ class CBREBreakApp:
                             [
                                 ft.Icon(ft.icons.Icons.CHECK_CIRCLE if paid else ft.icons.Icons.CIRCLE_OUTLINED, color=ft.Colors.GREEN_600 if paid else ft.Colors.GREY_400, size=20),
                                 ft.Text(f"{quantity}x {product}", expand=1, size=14, weight=ft.FontWeight.W_500 if paid else ft.FontWeight.NORMAL),
-                                ft.Text(f"{line_total:.2f} €", size=14, text_align=ft.TextAlign.END, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_700 if paid else None),
+                                ft.Text(f"{line_total:.2f} €", size=14, text_align=ft.TextAlign.END, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_700 if paid else ft.Colors.BLUE_GREY_700 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_300),
                             ],
                             spacing=10,
                         ),
@@ -807,7 +807,7 @@ class CBREBreakApp:
                     self.name_suggestion_list,
                     self.product_field,
                     self.product_suggestion_list,
-                    ft.Row([self.price_field, self.quantity_field], spacing=8),
+                    ft.Row([self.price_field, self.quantity_field], spacing=8, expand=True),
                     ft.Row(
                         [
                             ft.ElevatedButton(self.t("continue"), on_click=self.on_continue, height=48, expand=1, style=ft.ButtonStyle(bgcolor=ft.Colors.BLUE_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700, shape=ft.RoundedRectangleBorder(radius=14))),
@@ -818,11 +818,18 @@ class CBREBreakApp:
                     ft.ElevatedButton(self.t("finish"), on_click=self.on_finish, height=48, expand=1, style=ft.ButtonStyle(bgcolor=ft.Colors.GREEN_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREEN_900, shape=ft.RoundedRectangleBorder(radius=14))),
                 ],
                 spacing=10,
+                expand=True,
             )
 
-            self.page.add(
-                ft.Row([input_card], alignment=ft.MainAxisAlignment.CENTER),
+            input_wrapper = ft.Container(
+                content=input_card,
+                padding=16,
+                border_radius=16,
+                bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
+                border=ft.Border(left=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), top=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), right=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), bottom=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700)),
             )
+
+            self.page.add(input_wrapper)
             self.page.update()
             log("show_input_view end")
         except Exception:
