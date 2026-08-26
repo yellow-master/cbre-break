@@ -206,44 +206,6 @@ class CBREBreakApp:
         items = group.get("items", [])
         group_paid = all(item.get("paid", False) for item in items) if items else False
 
-        item_rows = []
-        for item_idx, item in enumerate(items):
-            product = item.get("product", "")
-            price = item.get("price", 0)
-            quantity = item.get("quantity", 1)
-            paid = item.get("paid", False)
-            line_total = price * quantity
-
-            if self.editing:
-                row = ft.Row(
-                    [
-                        ft.Checkbox(value=paid, on_change=lambda e, g=group, i=item_idx: self.toggle_item_paid(g, i, e.control.value)),
-                        ft.TextField(value=product, expand=2, text_size=14, height=44, on_change=self._make_item_field_changer(group, item_idx, "product")),
-                        ft.TextField(value=str(price), expand=1, text_size=14, height=44, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "price")),
-                        ft.TextField(value=str(quantity), width=64, text_size=14, height=44, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "quantity")),
-                        ft.IconButton(icon=ft.icons.Icons.DELETE, icon_color=ft.Colors.RED, icon_size=20, on_click=lambda e, g=group, i=item_idx: self.delete_item(g, i)),
-                    ],
-                    spacing=6,
-                )
-            else:
-                row = ft.Row(
-                    [
-                        ft.Checkbox(value=paid, disabled=True),
-                        ft.Text(f"{quantity}x {product}", expand=2, size=15),
-                        ft.Text(f"{line_total:.2f} €", expand=1, size=15, text_align=ft.TextAlign.END),
-                    ],
-                    spacing=10,
-                )
-            item_rows.append(row)
-
-        if self.editing:
-            content = ft.Column(item_rows, spacing=6)
-            card = ft.Container(content=content, padding=10, border_radius=10, bgcolor=ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900)
-        else:
-            content = ft.Column(item_rows, spacing=4)
-            opacity_val = 0.45 if group_paid else 1.0
-            card = ft.Container(content=content, padding=10, border_radius=10, opacity=opacity_val, on_click=lambda e, g=group: self.toggle_group_paid(g))
-
         name_row = ft.Row(
             [
                 ft.Text(name, size=17, weight=ft.FontWeight.BOLD, expand=1),
@@ -252,7 +214,80 @@ class CBREBreakApp:
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         )
 
+        if self.editing:
+            item_controls = []
+            for item_idx, item in enumerate(items):
+                product = item.get("product", "")
+                price = item.get("price", 0)
+                quantity = item.get("quantity", 1)
+                paid = item.get("paid", False)
+
+                item_card = ft.Container(
+                    content=ft.Column(
+                        [
+                            ft.TextField(value=product, label="Produkt", text_size=14, height=44, on_change=self._make_item_field_changer(group, item_idx, "product")),
+                            ft.Row(
+                                [
+                                    ft.TextField(value=str(price), label="Preis", text_size=14, height=44, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "price"), expand=1),
+                                    ft.TextField(value=str(quantity), label="Menge", text_size=14, height=44, keyboard_type=ft.KeyboardType.NUMBER, on_change=self._make_item_field_changer(group, item_idx, "quantity"), width=80),
+                                    ft.Checkbox(value=paid, label="bezahlt", on_change=lambda e, g=group, i=item_idx: self.toggle_item_paid(g, i, e.control.value)),
+                                    ft.IconButton(icon=ft.icons.Icons.DELETE, icon_color=ft.Colors.RED, icon_size=20, on_click=lambda e, g=group, i=item_idx: self.delete_item(g, i)),
+                                ],
+                                spacing=6,
+                            ),
+                        ],
+                        spacing=6,
+                    ),
+                    padding=8,
+                    border_radius=8,
+                )
+                item_controls.append(item_card)
+
+            add_btn = ft.ElevatedButton(
+                "Produkt hinzufügen",
+                icon=ft.icons.Icons.ADD,
+                on_click=lambda e, g=group: self.add_item_to_group(g),
+                height=44,
+            )
+            content = ft.Column(item_controls + [add_btn], spacing=6)
+            card = ft.Container(content=content, padding=10, border_radius=10, bgcolor=ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900)
+        else:
+            item_rows = []
+            for item_idx, item in enumerate(items):
+                product = item.get("product", "")
+                price = item.get("price", 0)
+                quantity = item.get("quantity", 1)
+                paid = item.get("paid", False)
+                line_total = price * quantity
+
+                row = ft.Row(
+                    [
+                        ft.Checkbox(value=paid, disabled=True),
+                        ft.Text(f"{quantity}x {product}", expand=1, size=15),
+                        ft.Text(f"{line_total:.2f} €", size=15, text_align=ft.TextAlign.END),
+                    ],
+                    spacing=10,
+                )
+                item_rows.append(row)
+
+            content = ft.Column(item_rows, spacing=4)
+            opacity_val = 0.45 if group_paid else 1.0
+            card = ft.Container(content=content, padding=10, border_radius=10, opacity=opacity_val, on_click=lambda e, g=group: self.toggle_group_paid(g))
+
         return ft.Container(content=ft.Column([name_row, ft.Divider(height=1), content], spacing=6), padding=12, border_radius=12)
+
+    def add_item_to_group(self, group):
+        try:
+            group.setdefault("items", []).append({
+                "product": "",
+                "price": 0,
+                "quantity": 1,
+                "paid": False,
+            })
+            self.save_data()
+            self._refresh_list()
+        except Exception:
+            log(f"add_item_to_group error: {traceback.format_exc()}")
 
     def _make_item_field_changer(self, group, item_idx, field):
         def changer(e):
