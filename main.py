@@ -317,9 +317,10 @@ class CBREBreakApp:
         name_row = ft.Row(
             [
                 ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=18, tooltip="Aufklappen", style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT)),
+                ft.Container(width=4),
                 ft.Container(
                     content=ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
-                    padding=ft.Padding(left=8, right=8, top=4, bottom=4),
+                    padding=ft.Padding(left=6, right=8, top=4, bottom=4),
                     border_radius=8,
                     ink=True,
                     on_click=lambda e, g=group: self.toggle_group_paid(g),
