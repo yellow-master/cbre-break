@@ -51,7 +51,7 @@ TRANSLATIONS = {
         "quantity_min": "Menge muss >= 1 sein",
         "name_required": "Name erforderlich",
         "product_required": "Produkt erforderlich",
-        "beta": "Beta(Optionen)",
+        "beta": "Beta(Listen)",
         "list_1": "Liste 1",
         "list_2": "Liste 2",
     },
@@ -97,7 +97,7 @@ TRANSLATIONS = {
         "quantity_min": "Quantity must be >= 1",
         "name_required": "Name required",
         "product_required": "Product required",
-        "beta": "Beta(Options)",
+        "beta": "Beta(Listen)",
         "list_1": "List 1",
         "list_2": "List 2",
     },
@@ -402,17 +402,8 @@ class CBREBreakApp:
                 spacing=header_spacing,
             )
 
-            top_right = ft.Row(
+            tab_row = ft.Row(
                 [
-                    ft.IconButton(
-                        icon=ft.icons.Icons.REFRESH,
-                        on_click=self.reset_list,
-                        tooltip=self.t("reset"),
-                        icon_size=icon_size,
-                        style=ft.ButtonStyle(bgcolor=ft.Colors.RED_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.RED_900, shape=ft.CircleBorder()),
-                    ),
-                ]
-                + ([
                     ft.Container(
                         content=ft.Text("1", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE if self._active_list_id == "1" else ft.Colors.GREY_600),
                         padding=8,
@@ -429,7 +420,7 @@ class CBREBreakApp:
                         on_click=lambda e: self._switch_list(2),
                         tooltip=self.t("list_2"),
                     ),
-                ] if self.settings.get("beta_enabled") else []),
+                ] if self.settings.get("beta_enabled") else [],
                 spacing=header_spacing,
             )
 
@@ -441,9 +432,19 @@ class CBREBreakApp:
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             )
 
-            header_col = ft.Column([header, title_row], spacing=self._ui(8, 6))
+            header_col = ft.Column([header, title_row] + ([tab_row] if self.settings.get("beta_enabled") else []), spacing=self._ui(8, 6))
 
             self._list_control = ft.Column(spacing=card_spacing, scroll=ft.ScrollMode.AUTO, expand=True)
+
+            content_bg = ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900
+            content_border = ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700
+            content_container = ft.Container(
+                content=self._list_control,
+                expand=True,
+                bgcolor=content_bg,
+                border=ft.Border(left=ft.BorderSide(1, content_border), top=ft.BorderSide(1, ft.Colors.TRANSPARENT), right=ft.BorderSide(1, content_border), bottom=ft.BorderSide(1, content_border)),
+                border_radius=ft.BorderRadius(bottom_left=16, bottom_right=16, top_left=0, top_right=0),
+            )
 
             if not self._current_list():
                 self._list_control.controls.append(
@@ -485,7 +486,7 @@ class CBREBreakApp:
                     [
                         header_col,
                         ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                        ft.Container(content=self._list_control, expand=True),
+                        content_container,
                         ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
                         ft.Row([self._total_label], alignment=ft.MainAxisAlignment.END),
                         bottom_row,
