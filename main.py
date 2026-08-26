@@ -441,14 +441,18 @@ class CBREBreakApp:
             if self.settings.get("beta_enabled"):
                 def make_tab(num):
                     is_active = self._active_list_id == str(num)
-                    return ft.TextButton(
-                        str(num),
-                        style=ft.ButtonStyle(
-                            color=ft.Colors.BLUE_GREY_700 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200,
-                            padding=10,
-                        ),
-                        width=120,
+                    tab_bg = ft.Colors.CYAN_600 if is_active else ft.Colors.TRANSPARENT
+                    tab_text_color = ft.Colors.WHITE if is_active else ft.Colors.BLUE_GREY_800 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
+                    tab_border = ft.BorderSide(1, ft.Colors.CYAN_600 if is_active else ft.Colors.BLUE_GREY_300 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_600)
+                    return ft.Container(
+                        content=ft.Text(str(num), size=16, weight=ft.FontWeight.BOLD, color=tab_text_color),
+                        padding=10,
+                        bgcolor=tab_bg,
+                        border=ft.Border(top=tab_border, bottom=tab_border, left=tab_border if num == 1 else ft.BorderSide(1, ft.Colors.TRANSPARENT), right=tab_border if num == 3 else ft.BorderSide(1, ft.Colors.TRANSPARENT)),
                         on_click=lambda e, n=str(num): self._switch_list(n),
+                        tooltip=self.t(f"list_{num}"),
+                        width=120,
+                        alignment="center",
                     )
 
                 tab_row = ft.Row(
@@ -527,7 +531,7 @@ class CBREBreakApp:
         name = group.get("name", "")
         items = group.get("items", [])
         group_paid = all(item.get("paid", False) for item in items) if items else False
-        group_total = sum(item.get("price", 0) * item.get("quantity", 1) for item in items)
+        group_total = sum(item.get("price", 0) * item.get("quantity", 1) for item in items if not item.get("paid", False))
         is_expanded = idx in self._expanded_groups
 
         expand_icon = ft.icons.Icons.EXPAND_LESS if is_expanded else ft.icons.Icons.CHEVRON_RIGHT
