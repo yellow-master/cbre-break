@@ -45,6 +45,7 @@ TRANSLATIONS = {
         "close": "Schließen",
         "add_product": "Produkt hinzufügen",
         "expand": "Aufklappen",
+        "reset": "Reset",
         "price_required": "Preis erforderlich",
         "invalid_price": "Ungültiger Preis",
         "quantity_min": "Menge muss >= 1 sein",
@@ -87,6 +88,7 @@ TRANSLATIONS = {
         "close": "Close",
         "add_product": "Add product",
         "expand": "Expand",
+        "reset": "Reset",
         "price_required": "Price required",
         "invalid_price": "Invalid price",
         "quantity_min": "Quantity must be >= 1",
@@ -322,6 +324,13 @@ class CBREBreakApp:
                         icon_size=20,
                         style=ft.ButtonStyle(bgcolor=ft.Colors.PURPLE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.PURPLE_900, shape=ft.CircleBorder()),
                     ),
+                    ft.IconButton(
+                        icon=ft.icons.Icons.REFRESH,
+                        on_click=self.reset_list,
+                        tooltip=self.t("reset"),
+                        icon_size=20,
+                        style=ft.ButtonStyle(bgcolor=ft.Colors.RED_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.RED_900, shape=ft.CircleBorder()),
+                    ),
                 ],
                 spacing=10,
             )
@@ -410,7 +419,13 @@ class CBREBreakApp:
         name_row = ft.Row(
             [
                 ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=18, tooltip=self.t("expand"), style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT), icon_color=icon_color),
-                ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
+                ft.Container(
+                    content=ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
+                    padding=ft.Padding(left=6, right=8, top=4, bottom=4),
+                    border_radius=8,
+                    ink=True,
+                    on_click=lambda e, g=group: self.toggle_group_paid(g),
+                ),
                 ft.Text(f"{group_total:.2f} €", size=15, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, color=ft.Colors.BLUE_GREY_700 if not group_paid else ft.Colors.GREEN_700),
                 ft.Text(self.t("paid") if group_paid else self.t("unpaid"), size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_700 if group_paid else ft.Colors.ORANGE_700),
             ],
@@ -522,8 +537,6 @@ class CBREBreakApp:
                 bottom=ft.BorderSide(1, ft.Colors.TRANSPARENT),
             ),
             shadow=ft.BoxShadow(blur_radius=12, spread_radius=0, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 4)),
-            ink=True,
-            on_click=lambda e, g=group: self.toggle_group_paid(g),
         )
         return outer
 
@@ -676,6 +689,15 @@ class CBREBreakApp:
                 self._refresh_list()
         except Exception:
             log(f"delete_item error: {traceback.format_exc()}")
+
+    def reset_list(self, e):
+        log("reset_list clicked")
+        try:
+            self.current_list = []
+            self.save_data()
+            self._refresh_list()
+        except Exception:
+            log(f"reset_list error: {traceback.format_exc()}")
 
     def new_option(self, e):
         log("new_option clicked")
