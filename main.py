@@ -254,7 +254,7 @@ class CBREBreakApp:
                         padding=24,
                         border_radius=16,
                         bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
-                        border=ft.border.all(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700),
+                        border=ft.Border(left=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), top=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), right=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), bottom=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700)),
                     )
                 )
             else:
@@ -376,7 +376,7 @@ class CBREBreakApp:
                     style=ft.ButtonStyle(bgcolor=ft.Colors.RED_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.RED_900, color=ft.Colors.RED_600 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.RED_200, shape=ft.RoundedRectangleBorder(radius=12)),
                 )
                 content = ft.Column(item_controls + [add_btn, delete_group_btn], spacing=6)
-                card = ft.Container(content=content, padding=12, border_radius=16, bgcolor=ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900, border=ft.border.all(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), shadow=ft.BoxShadow(blur_radius=10, spread_radius=0, color=ft.Colors.with_opacity(0.12, ft.Colors.BLACK), offset=ft.Offset(0, 3)))
+                card = ft.Container(content=content, padding=12, border_radius=16, bgcolor=ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900, border=ft.Border(left=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), top=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), right=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), bottom=ft.BorderSide(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700)), shadow=ft.BoxShadow(blur_radius=10, spread_radius=0, color=ft.Colors.with_opacity(0.12, ft.Colors.BLACK), offset=ft.Offset(0, 3)))
             else:
                 item_rows = []
                 for item in items:
@@ -416,7 +416,7 @@ class CBREBreakApp:
                     opacity=opacity_val,
                     ink=True,
                     bgcolor=bg_color,
-                    border=ft.border.all(1.5, border_color),
+                    border=ft.Border(left=ft.BorderSide(1.5, border_color), top=ft.BorderSide(1.5, border_color), right=ft.BorderSide(1.5, border_color), bottom=ft.BorderSide(1.5, border_color)),
                     shadow=ft.BoxShadow(blur_radius=10, spread_radius=0, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 3)),
                 )
         else:
