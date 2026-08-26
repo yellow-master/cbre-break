@@ -237,7 +237,7 @@ class CBREBreakApp:
 
             title_row = ft.Row(
                 [
-                    ft.Text("CBRE Break", size=20, weight=ft.FontWeight.BOLD, expand=1),
+                    ft.Text("CBRE Break", size=22, weight=ft.FontWeight.BOLD, expand=1),
                     top_right,
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -245,7 +245,7 @@ class CBREBreakApp:
 
             header_col = ft.Column([header, title_row], spacing=8)
 
-            self._list_control = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO, expand=True)
+            self._list_control = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
 
             if not self.current_list:
                 self._list_control.controls.append(
@@ -254,6 +254,7 @@ class CBREBreakApp:
                         padding=24,
                         border_radius=16,
                         bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
+                        border=ft.border.all(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700),
                     )
                 )
             else:
@@ -266,7 +267,7 @@ class CBREBreakApp:
                     if not item.get("paid", False):
                         total += item.get("price", 0) * item.get("quantity", 1)
 
-            self._total_label = ft.Text(f"Gesamtpreis: {total:.2f} €", size=17, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, expand=1)
+            self._total_label = ft.Text(f"Gesamtpreis: {total:.2f} €", size=18, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, expand=1)
 
             bottom_row = ft.Row(
                 [
@@ -308,15 +309,23 @@ class CBREBreakApp:
 
         expand_icon = ft.icons.Icons.EXPAND_LESS if is_expanded else ft.icons.Icons.CHEVRON_RIGHT
 
+        border_color = ft.Colors.GREEN_400 if group_paid else ft.Colors.ORANGE_400
+        bg_color = ft.Colors.GREEN_50 if group_paid else ft.Colors.WHITE
+        if self.page.theme_mode == ft.ThemeMode.DARK:
+            bg_color = ft.Colors.BLUE_GREY_800 if group_paid else ft.Colors.BLUE_GREY_900
+
         name_row = ft.Row(
             [
                 ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=18, tooltip="Aufklappen", style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT)),
-                ft.GestureDetector(
+                ft.Container(
                     content=ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
-                    on_tap=lambda e, g=group: self.toggle_group_paid(g),
+                    padding=ft.Padding(left=8, right=8, top=4, bottom=4),
+                    border_radius=8,
+                    ink=True,
+                    on_click=lambda e, g=group: self.toggle_group_paid(g),
                 ),
-                ft.Text(f"{group_total:.2f} €", size=15, text_align=ft.TextAlign.END),
-                ft.Text("bezahlt" if group_paid else "offen", size=12, color=ft.Colors.GREEN_600 if group_paid else ft.Colors.ORANGE_600),
+                ft.Text(f"{group_total:.2f} €", size=15, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, color=ft.Colors.BLUE_600 if not group_paid else ft.Colors.GREEN_600),
+                ft.Text("bezahlt" if group_paid else "offen", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_600 if group_paid else ft.Colors.ORANGE_600),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         )
@@ -367,7 +376,7 @@ class CBREBreakApp:
                     style=ft.ButtonStyle(bgcolor=ft.Colors.RED_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.RED_900, color=ft.Colors.RED_600 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.RED_200, shape=ft.RoundedRectangleBorder(radius=12)),
                 )
                 content = ft.Column(item_controls + [add_btn, delete_group_btn], spacing=6)
-                card = ft.Container(content=content, padding=12, border_radius=16, bgcolor=ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900, shadow=ft.BoxShadow(blur_radius=8, spread_radius=0, color=ft.Colors.with_opacity(0.08, ft.Colors.BLACK), offset=ft.Offset(0, 2)))
+                card = ft.Container(content=content, padding=12, border_radius=16, bgcolor=ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900, border=ft.border.all(1, ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700), shadow=ft.BoxShadow(blur_radius=10, spread_radius=0, color=ft.Colors.with_opacity(0.12, ft.Colors.BLACK), offset=ft.Offset(0, 3)))
             else:
                 item_rows = []
                 for item in items:
@@ -377,32 +386,52 @@ class CBREBreakApp:
                     paid = item.get("paid", False)
                     line_total = price * quantity
 
-                    row = ft.Row(
-                        [
-                            ft.Checkbox(value=paid, disabled=True, check_color=ft.Colors.GREEN_600),
-                            ft.Text(f"{quantity}x {product}", expand=1, size=14),
-                            ft.Text(f"{line_total:.2f} €", size=14, text_align=ft.TextAlign.END),
-                        ],
-                        spacing=8,
+                    item_bg = ft.Colors.GREEN_50 if paid else ft.Colors.WHITE
+                    if self.page.theme_mode == ft.ThemeMode.DARK:
+                        item_bg = ft.Colors.BLUE_GREY_800 if paid else ft.Colors.BLUE_GREY_900
+
+                    row = ft.Container(
+                        content=ft.Row(
+                            [
+                                ft.Icon(ft.icons.Icons.CHECK_CIRCLE if paid else ft.icons.Icons.CIRCLE_OUTLINED, color=ft.Colors.GREEN_600 if paid else ft.Colors.GREY_400, size=20),
+                                ft.Text(f"{quantity}x {product}", expand=1, size=14, weight=ft.FontWeight.W_500 if paid else ft.FontWeight.NORMAL),
+                                ft.Text(f"{line_total:.2f} €", size=14, text_align=ft.TextAlign.END, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_700 if paid else None),
+                            ],
+                            spacing=10,
+                        ),
+                        padding=10,
+                        border_radius=10,
+                        bgcolor=item_bg,
+                        ink=True,
+                        on_click=lambda e, i=item: self._toggle_item_paid_quick(group, item),
                     )
                     item_rows.append(row)
 
-                content = ft.Column(item_rows, spacing=3)
-                opacity_val = 0.5 if group_paid else 1.0
+                content = ft.Column(item_rows, spacing=4)
+                opacity_val = 0.6 if group_paid else 1.0
                 card = ft.Container(
                     content=content,
-                    padding=10,
+                    padding=0,
                     border_radius=12,
                     opacity=opacity_val,
                     ink=True,
-                    bgcolor=ft.Colors.WHITE if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800,
-                    shadow=ft.BoxShadow(blur_radius=6, spread_radius=0, color=ft.Colors.with_opacity(0.05, ft.Colors.BLACK), offset=ft.Offset(0, 1)),
+                    bgcolor=bg_color,
+                    border=ft.border.all(1.5, border_color),
+                    shadow=ft.BoxShadow(blur_radius=10, spread_radius=0, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 3)),
                 )
         else:
             content = ft.Container(padding=ft.Padding(left=36, top=0, right=0, bottom=0))
             card = ft.Container(content=content, padding=6, border_radius=12)
 
-        return ft.Container(content=ft.Column([name_row, ft.Divider(height=1, color=ft.Colors.TRANSPARENT), card], spacing=6), padding=10, border_radius=16)
+        outer = ft.Container(
+            content=ft.Column([name_row, ft.Divider(height=1, color=ft.Colors.TRANSPARENT), card], spacing=6),
+            padding=10,
+            border_radius=16,
+            bgcolor=bg_color,
+            border=ft.border.only(left=ft.BorderSide(4, border_color), top=ft.BorderSide(1, ft.Colors.TRANSPARENT), right=ft.BorderSide(1, ft.Colors.TRANSPARENT), bottom=ft.BorderSide(1, ft.Colors.TRANSPARENT)),
+            shadow=ft.BoxShadow(blur_radius=12, spread_radius=0, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 4)),
+        )
+        return outer
 
     def toggle_group_expand(self, idx):
         if idx in self._expanded_groups:
@@ -512,6 +541,14 @@ class CBREBreakApp:
                 if not item.get("paid", False):
                     total += item.get("price", 0) * item.get("quantity", 1)
         self._total_label.value = f"Gesamtpreis: {total:.2f} €"
+
+    def _toggle_item_paid_quick(self, group, item):
+        try:
+            item["paid"] = not item.get("paid", False)
+            self.save_data()
+            self._refresh_list()
+        except Exception:
+            log(f"_toggle_item_paid_quick error: {traceback.format_exc()}")
 
     def toggle_group_paid(self, group):
         try:
