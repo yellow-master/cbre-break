@@ -349,16 +349,19 @@ class CBREBreakApp:
         )
 
     def _ui(self, desktop_size, mobile_size):
-        return mobile_size if getattr(self.page, 'window_width', 400) < 360 else desktop_size
+        width = getattr(self.page, 'window_width', 400)
+        if width >= 400:
+            return desktop_size
+        elif width <= 320:
+            return mobile_size
+        else:
+            factor = (width - 320) / 80
+            return int(mobile_size + (desktop_size - mobile_size) * factor)
 
     def _compact(self):
         return getattr(self.page, 'window_width', 400) < 360
 
     def _on_page_resize(self, e):
-        compact = self._compact()
-        if compact == self._last_compact:
-            return
-        self._last_compact = compact
         if self._current_view == "main":
             self.build_main_view()
         elif self._current_view == "settings":
@@ -464,13 +467,16 @@ class CBREBreakApp:
             self._list_control = ft.Column(spacing=card_spacing, scroll=ft.ScrollMode.AUTO, expand=True)
 
             if not self._current_list():
+                self._list_control.controls.clear()
                 empty_container = ft.Container(
                     content=ft.Text(self.t("no_entries"), size=self._ui(15, 13), text_align=ft.TextAlign.CENTER, color=ft.Colors.BLUE_GREY_500 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_400),
                     expand=True,
                     alignment="center",
+                    bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
                 )
                 self._list_control.controls.append(empty_container)
             else:
+                self._list_control.controls.clear()
                 for idx, group in enumerate(self._current_list()):
                     self._list_control.controls.append(self._build_group_card(group, idx))
 
@@ -495,12 +501,10 @@ class CBREBreakApp:
                 ],
             )
 
-            content_bg = ft.Colors.WHITE if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800
-            content_border = ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_600
+            content_border = ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700
             content_container = ft.Container(
                 content=self._list_control,
                 expand=True,
-                bgcolor=content_bg,
                 border=ft.Border(left=ft.BorderSide(1, content_border), top=ft.BorderSide(1, content_border), right=ft.BorderSide(1, content_border), bottom=ft.BorderSide(1, content_border)),
                 border_radius=ft.BorderRadius(bottom_left=16, bottom_right=16, top_left=0, top_right=0),
             )
