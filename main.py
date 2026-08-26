@@ -421,13 +421,7 @@ class CBREBreakApp:
         name_row = ft.Row(
             [
                 ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=22, tooltip=self.t("expand"), style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT), icon_color=icon_color),
-                ft.Container(
-                    content=ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
-                    padding=ft.Padding(left=10, right=12, top=12, bottom=12),
-                    border_radius=10,
-                    ink=True,
-                    on_click=lambda e, g=group: self.toggle_group_paid(g),
-                ),
+                ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
                 ft.Text(f"{group_total:.2f} €", size=15, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, color=ft.Colors.BLUE_GREY_700 if not group_paid else ft.Colors.GREEN_700),
                 ft.Text(self.t("paid") if group_paid else self.t("unpaid"), size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_700 if group_paid else ft.Colors.ORANGE_700),
             ],
@@ -507,7 +501,7 @@ class CBREBreakApp:
                         border_radius=10,
                         bgcolor=item_bg,
                         ink=True,
-                        on_click=lambda e, captured_item=item: self._toggle_item_paid_quick(group, captured_item),
+                        on_click=lambda e, captured_item=item: self._toggle_item_paid_quick(group, captured_item, e),
                     )
                     item_rows.append(row)
 
@@ -539,6 +533,8 @@ class CBREBreakApp:
                 bottom=ft.BorderSide(1, ft.Colors.TRANSPARENT),
             ),
             shadow=ft.BoxShadow(blur_radius=12, spread_radius=0, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK), offset=ft.Offset(0, 4)),
+            ink=True,
+            on_click=lambda e, g=group: self.toggle_group_paid(g),
         )
         return outer
 
@@ -644,7 +640,19 @@ class CBREBreakApp:
     def _sort_current_list(self):
         self.current_list.sort(key=self._group_sort_key)
 
-    def _toggle_item_paid_quick(self, group, item):
+    def _update_total(self):
+        if not self._total_label:
+            return
+        total = 0
+        for group in self.current_list:
+            for item in group.get("items", []):
+                if not item.get("paid", False):
+                    total += item.get("price", 0) * item.get("quantity", 1)
+        self._total_label.value = f"{self.t('total_price')} {total:.2f} €"
+
+    def _toggle_item_paid_quick(self, group, item, e=None):
+        if e:
+            e.stop_propagation()
         self._item_toggle_active = True
         try:
             item["paid"] = not item.get("paid", False)
