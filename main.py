@@ -29,7 +29,12 @@ class CBREBreakApp:
         self.products = []
         self.people = []
         self.current_list = []
-        self.settings = {"theme_mode": "light"}
+        self.settings = {
+            "theme_mode": "light",
+            "auto_add_products": True,
+            "auto_add_persons": True,
+            "language": "de",
+        }
         self.editing = False
         self._list_control = None
         self._total_label = None
@@ -105,6 +110,66 @@ class CBREBreakApp:
         self.save_data()
         self.page.update()
 
+    def show_settings(self, e=None):
+        self.page.clean()
+        theme_switch = ft.Switch(label="Dark Mode", value=self.page.theme_mode == ft.ThemeMode.DARK, on_change=self._on_settings_theme_change, active_color=ft.Colors.BLUE_400)
+        auto_products_switch = ft.Switch(label="Auto-Produkte hinzufügen", value=bool(self.settings.get("auto_add_products", True)), on_change=self._on_settings_auto_products_change, active_color=ft.Colors.GREEN_400)
+        auto_persons_switch = ft.Switch(label="Auto-Personen hinzufügen", value=bool(self.settings.get("auto_add_persons", True)), on_change=self._on_settings_auto_persons_change, active_color=ft.Colors.PURPLE_400)
+        language_switch = ft.Switch(label="English", value=self.settings.get("language", "de") == "en", on_change=self._on_settings_language_change, active_color=ft.Colors.ORANGE_400)
+
+        settings_card = ft.Container(
+            content=ft.Column(
+                [
+                    ft.Text("Einstellungen", size=20, weight=ft.FontWeight.BOLD),
+                    ft.Divider(),
+                    ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Row([ft.Icon(ft.icons.Icons.DARK_MODE, color=ft.Colors.BLUE_400), theme_switch], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
+                                ft.Row([ft.Icon(ft.icons.Icons.INVENTORY_2, color=ft.Colors.GREEN_400), auto_products_switch], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
+                                ft.Row([ft.Icon(ft.icons.Icons.PEOPLE, color=ft.Colors.PURPLE_400), auto_persons_switch], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
+                                ft.Row([ft.Icon(ft.icons.Icons.LANGUAGE, color=ft.Colors.ORANGE_400), language_switch], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                            ],
+                            spacing=12,
+                        ),
+                        padding=16,
+                        border_radius=16,
+                        bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
+                    ),
+                    ft.ElevatedButton("Fertig", on_click=lambda e: self.build_main_view(), height=48, expand=1, style=ft.ButtonStyle(bgcolor=ft.Colors.GREEN_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREEN_900, shape=ft.RoundedRectangleBorder(radius=14))),
+                ],
+                spacing=16,
+            ),
+            padding=20,
+            border_radius=20,
+        )
+
+        self.page.add(
+            ft.Row([settings_card], alignment=ft.MainAxisAlignment.CENTER),
+        )
+        self.page.update()
+
+    def _on_settings_theme_change(self, e):
+        self.page.theme_mode = ft.ThemeMode.DARK if e.control.value else ft.ThemeMode.LIGHT
+        self.settings["theme_mode"] = "dark" if e.control.value else "light"
+        self.save_data()
+        self.page.update()
+
+    def _on_settings_auto_products_change(self, e):
+        self.settings["auto_add_products"] = bool(e.control.value)
+        self.save_data()
+
+    def _on_settings_auto_persons_change(self, e):
+        self.settings["auto_add_persons"] = bool(e.control.value)
+        self.save_data()
+
+    def _on_settings_language_change(self, e):
+        self.settings["language"] = "en" if e.control.value else "de"
+        self.save_data()
+
     def show_loading(self):
         self.page.clean()
         self.page.add(
@@ -125,6 +190,13 @@ class CBREBreakApp:
 
             header = ft.Row(
                 [
+                    ft.IconButton(
+                        icon=ft.icons.Icons.SETTINGS,
+                        on_click=self.show_settings,
+                        tooltip="Einstellungen",
+                        icon_size=20,
+                        style=ft.ButtonStyle(bgcolor=ft.Colors.GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_700, shape=ft.CircleBorder()),
+                    ),
                     ft.IconButton(
                         icon=ft.icons.Icons.EDIT,
                         on_click=self.edit_list,
@@ -239,7 +311,10 @@ class CBREBreakApp:
         name_row = ft.Row(
             [
                 ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=18, tooltip="Aufklappen", style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT)),
-                ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
+                ft.GestureDetector(
+                    content=ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
+                    on_tap=lambda e, g=group: self.toggle_group_paid(g),
+                ),
                 ft.Text(f"{group_total:.2f} €", size=15, text_align=ft.TextAlign.END),
                 ft.Text("bezahlt" if group_paid else "offen", size=12, color=ft.Colors.GREEN_600 if group_paid else ft.Colors.ORANGE_600),
             ],
@@ -319,7 +394,6 @@ class CBREBreakApp:
                     padding=10,
                     border_radius=12,
                     opacity=opacity_val,
-                    on_click=lambda e, g=group: self.toggle_group_paid(g),
                     ink=True,
                     bgcolor=ft.Colors.WHITE if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800,
                     shadow=ft.BoxShadow(blur_radius=6, spread_radius=0, color=ft.Colors.with_opacity(0.05, ft.Colors.BLACK), offset=ft.Offset(0, 1)),
@@ -370,6 +444,8 @@ class CBREBreakApp:
             return 0.0
 
     def _ensure_product_in_catalog(self, name, unit_price):
+        if not self.settings.get("auto_add_products", True):
+            return
         name = name.strip()
         if not name:
             return
@@ -666,7 +742,7 @@ class CBREBreakApp:
                 existing["items"].append(entry)
             else:
                 self.current_list.append({"name": name, "items": [entry]})
-            if name not in self.people:
+            if self.settings.get("auto_add_persons", True) and name not in self.people:
                 self.people.append(name)
             self._ensure_product_in_catalog(entry["product"], entry["price"])
             self.save_data()
@@ -705,7 +781,7 @@ class CBREBreakApp:
                     existing["items"].append(entry)
                 else:
                     self.current_list.append({"name": name, "items": [entry]})
-                if name not in self.people:
+                if self.settings.get("auto_add_persons", True) and name not in self.people:
                     self.people.append(name)
                 self._ensure_product_in_catalog(entry["product"], entry["price"])
                 self.save_data()
@@ -746,7 +822,7 @@ class CBREBreakApp:
                     existing["items"].append(entry)
                 else:
                     self.current_list.append({"name": name, "items": [entry]})
-                if name not in self.people:
+                if self.settings.get("auto_add_persons", True) and name not in self.people:
                     self.people.append(name)
                 self._ensure_product_in_catalog(entry["product"], entry["price"])
                 self.save_data()
@@ -904,7 +980,7 @@ class CBREBreakApp:
                 self.products.append({"name": name, "price": price})
                 self.manager_input_price.value = ""
             else:
-                if name not in self.people:
+                if self.settings.get("auto_add_persons", True) and name not in self.people:
                     self.people.append(name)
 
             self.manager_input_name.value = ""
