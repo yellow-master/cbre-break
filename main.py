@@ -122,6 +122,7 @@ class CBREBreakApp:
         self.page.window_width = 400
         self.page.window_height = 800
         self.page.padding = 10
+        self.page.bgcolor = ft.Colors.WHITE if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900
 
         self.products = []
         self.people = []
@@ -470,7 +471,6 @@ class CBREBreakApp:
                     content=ft.Text(self.t("no_entries"), size=self._ui(15, 13), text_align=ft.TextAlign.CENTER, color=ft.Colors.BLUE_GREY_500 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_400),
                     expand=True,
                     alignment="center",
-                    bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
                 )
                 self._list_control.controls.append(empty_container)
             else:
@@ -499,18 +499,12 @@ class CBREBreakApp:
                 ],
             )
 
-            content_container = ft.Container(
-                content=self._list_control,
-                expand=True,
-                border_radius=ft.BorderRadius(bottom_left=16, bottom_right=16, top_left=0, top_right=0),
-            )
-
             self.page.add(
                 ft.Column(
                     [
                         header_col,
                         ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                        content_container,
+                        self._list_control,
                         ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
                         ft.Row([self._total_label], alignment=ft.MainAxisAlignment.END),
                         bottom_row,
