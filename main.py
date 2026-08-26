@@ -289,9 +289,11 @@ class CBREBreakApp:
                     ft.ElevatedButton(self.t("finish"), on_click=lambda e: self.build_main_view(), height=self._ui(48, 44), expand=1, style=ft.ButtonStyle(bgcolor=ft.Colors.GREEN_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREEN_900, shape=ft.RoundedRectangleBorder(radius=self._ui(14, 12)))),
                 ],
                 spacing=self._ui(16, 12),
+                scroll=ft.ScrollMode.AUTO,
             ),
             padding=self._ui(20, 12),
             border_radius=self._ui(20, 16),
+            width=self.page.window_width - 24 if self.page.window_width else 376,
         )
 
         self.page.add(
@@ -462,18 +464,22 @@ class CBREBreakApp:
             if self.settings.get("beta_enabled"):
                 def make_tab(num, label):
                     is_active = self._active_list_id == str(num)
+                    tab_color = ft.Colors.CYAN_600 if is_active else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700
+                    text_color = ft.Colors.WHITE if is_active else ft.Colors.BLUE_GREY_800 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
                     return ft.Container(
-                        content=ft.Text(label, size=15, weight=ft.FontWeight.BOLD if is_active else ft.FontWeight.W_500, color=ft.Colors.WHITE if is_active else ft.Colors.GREY_600),
-                        padding=10,
-                        border_radius=ft.BorderRadius(top_left=10, top_right=10, bottom_right=0, bottom_left=0),
-                        bgcolor=ft.Colors.CYAN_600 if is_active else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700,
+                        content=ft.Text(label, size=16, weight=ft.FontWeight.BOLD, color=text_color),
+                        padding=ft.Padding(left=12, top=14, right=12, bottom=14),
+                        bgcolor=tab_color,
                         on_click=lambda e, n=num: self._switch_list(n),
                         tooltip=self.t(f"list_{num}"),
+                        expand=True,
+                        alignment=ft.alignment.center,
+                        border_radius=ft.BorderRadius(top_left=12, top_right=12, bottom_right=0, bottom_left=0),
                     )
 
                 tab_row = ft.Row(
                     [make_tab(1, "1"), make_tab(2, "2"), make_tab(3, "3")],
-                    spacing=2,
+                    spacing=0,
                 )
 
                 content_bg = ft.Colors.WHITE if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800
@@ -483,7 +489,7 @@ class CBREBreakApp:
                     expand=True,
                     bgcolor=content_bg,
                     border=ft.Border(left=ft.BorderSide(1, content_border), top=ft.BorderSide(1, content_border), right=ft.BorderSide(1, content_border), bottom=ft.BorderSide(1, content_border)),
-                    border_radius=ft.BorderRadius(bottom_left=12, bottom_right=12, top_left=0, top_right=0),
+                    border_radius=ft.BorderRadius(bottom_left=16, bottom_right=16, top_left=0, top_right=0),
                 )
 
                 header_col = ft.Column([header, title_row, tab_row], spacing=0)
