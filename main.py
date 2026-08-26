@@ -191,7 +191,7 @@ class CBREBreakApp:
                 json.dump({
                     "products": self.products,
                     "people": self.people,
-                "current_list": self.current_list,
+                    "current_list": self.current_list,
                     "settings": self.settings,
                 }, f, indent=2)
             log("save_data end")
@@ -323,9 +323,13 @@ class CBREBreakApp:
             return int(mobile_size + (desktop_size - mobile_size) * factor)
 
     def _compact(self):
-        return getattr(self.page, 'window_width', 400) < 360
+        return getattr(self.page, 'window_width', 400) < 380
 
     def _on_page_resize(self, e):
+        width = getattr(self.page, 'window_width', 400)
+        if abs(width - getattr(self, '_last_width', width)) < 10:
+            return
+        self._last_width = width
         if self._current_view == "main":
             self.build_main_view()
         elif self._current_view == "settings":
