@@ -293,7 +293,7 @@ class CBREBreakApp:
             ),
             padding=self._ui(20, 12),
             border_radius=self._ui(20, 16),
-            width=self.page.window_width - 24 if self.page.window_width else 376,
+            width=self.page.window_width - 24 if self.page.window_width and self.page.window_width > 200 else 376,
         )
 
         self.page.add(
@@ -374,9 +374,6 @@ class CBREBreakApp:
             header_spacing = self._ui(12, 8)
             section_spacing = self._ui(12, 8)
             card_spacing = self._ui(10, 6)
-            name_size = self._ui(16, 14)
-            meta_size = self._ui(15, 13)
-            status_size = self._ui(12, 11)
             total_size = self._ui(18, 16)
 
             header = ft.Row(
@@ -427,6 +424,30 @@ class CBREBreakApp:
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             )
 
+            if self.settings.get("beta_enabled"):
+                def make_tab(num):
+                    is_active = self._active_list_id == str(num)
+                    tab_color = ft.Colors.CYAN_600 if is_active else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700
+                    text_color = ft.Colors.WHITE if is_active else ft.Colors.BLUE_GREY_800 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
+                    return ft.Container(
+                        content=ft.Text(str(num), size=16, weight=ft.FontWeight.BOLD, color=text_color),
+                        padding=10,
+                        bgcolor=tab_color,
+                        on_click=lambda e, n=str(num): self._switch_list(n),
+                        tooltip=self.t(f"list_{num}"),
+                        expand=True,
+                        alignment="center",
+                    )
+
+                tab_row = ft.Row(
+                    [make_tab(1), make_tab(2), make_tab(3)],
+                    spacing=0,
+                )
+
+                header_col = ft.Column([header, title_row, tab_row], spacing=0)
+            else:
+                header_col = ft.Column([header, title_row], spacing=self._ui(8, 6))
+
             self._list_control = ft.Column(spacing=card_spacing, scroll=ft.ScrollMode.AUTO, expand=True)
 
             if not self._current_list():
@@ -461,61 +482,31 @@ class CBREBreakApp:
                 ],
             )
 
-            if self.settings.get("beta_enabled"):
-                def make_tab(num, label):
-                    is_active = self._active_list_id == str(num)
-                    tab_color = ft.Colors.CYAN_600 if is_active else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700
-                    text_color = ft.Colors.WHITE if is_active else ft.Colors.BLUE_GREY_800 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
-                    return ft.Container(
-                        content=ft.Text(label, size=16, weight=ft.FontWeight.BOLD, color=text_color),
-                        padding=ft.Padding(left=12, top=14, right=12, bottom=14),
-                        bgcolor=tab_color,
-                        on_click=lambda e, n=num: self._switch_list(n),
-                        tooltip=self.t(f"list_{num}"),
-                        expand=True,
-                        alignment="center",
-                        border_radius=ft.BorderRadius(top_left=12, top_right=12, bottom_right=0, bottom_left=0),
-                    )
+            content_bg = ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900
+            content_border = ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700
+            content_container = ft.Container(
+                content=self._list_control,
+                expand=True,
+                bgcolor=content_bg,
+                border=ft.Border(left=ft.BorderSide(1, content_border), top=ft.BorderSide(1, ft.Colors.TRANSPARENT), right=ft.BorderSide(1, content_border), bottom=ft.BorderSide(1, content_border)),
+                border_radius=ft.BorderRadius(bottom_left=16, bottom_right=16, top_left=0, top_right=0),
+            )
 
-                tab_row = ft.Row(
-                    [make_tab(1, "1"), make_tab(2, "2"), make_tab(3, "3")],
-                    spacing=0,
-                )
-
-                content_bg = ft.Colors.WHITE if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800
-                content_border = ft.Colors.BLUE_GREY_300 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_600
-                content_container = ft.Container(
-                    content=self._list_control,
-                    expand=True,
-                    bgcolor=content_bg,
-                    border=ft.Border(left=ft.BorderSide(1, content_border), top=ft.BorderSide(1, content_border), right=ft.BorderSide(1, content_border), bottom=ft.BorderSide(1, content_border)),
-                    border_radius=ft.BorderRadius(bottom_left=16, bottom_right=16, top_left=0, top_right=0),
-                )
-
-                header_col = ft.Column([header, title_row, tab_row], spacing=0)
-                main_content = ft.Column(
-                    [header_col, content_container, ft.Row([self._total_label], alignment=ft.MainAxisAlignment.END), bottom_row],
-                    spacing=0,
-                    expand=True,
-                )
-            else:
-                header_col = ft.Column([header, title_row], spacing=self._ui(8, 6))
-                content_bg = ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900
-                content_border = ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700
-                content_container = ft.Container(
-                    content=self._list_control,
-                    expand=True,
-                    bgcolor=content_bg,
-                    border=ft.Border(left=ft.BorderSide(1, content_border), top=ft.BorderSide(1, ft.Colors.TRANSPARENT), right=ft.BorderSide(1, content_border), bottom=ft.BorderSide(1, content_border)),
-                    border_radius=ft.BorderRadius(bottom_left=16, bottom_right=16, top_left=0, top_right=0),
-                )
-                main_content = ft.Column(
-                    [header_col, ft.Divider(height=1, color=ft.Colors.TRANSPARENT), content_container, ft.Divider(height=1, color=ft.Colors.TRANSPARENT), ft.Row([self._total_label], alignment=ft.MainAxisAlignment.END), bottom_row],
+            self.page.add(
+                ft.Column(
+                    [
+                        header_col,
+                        ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
+                        content_container,
+                        ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
+                        ft.Row([self._total_label], alignment=ft.MainAxisAlignment.END),
+                        bottom_row,
+                    ],
                     spacing=section_spacing,
                     expand=True,
                 )
+            )
             log("build_main_view end")
-            self.page.add(main_content)
         except Exception:
             log(f"build_main_view error: {traceback.format_exc()}")
             raise
