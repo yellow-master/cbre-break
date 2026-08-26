@@ -441,12 +441,8 @@ class CBREBreakApp:
             if self.settings.get("beta_enabled"):
                 def make_tab(num):
                     is_active = self._active_list_id == str(num)
-                    if is_active:
-                        tab_bg = ft.Colors.CYAN_600
-                        tab_text_color = ft.Colors.WHITE
-                    else:
-                        tab_bg = ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700
-                        tab_text_color = ft.Colors.BLUE_GREY_800 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
+                    tab_bg = ft.Colors.CYAN_600 if is_active else ft.Colors.TRANSPARENT
+                    tab_text_color = ft.Colors.WHITE if is_active else ft.Colors.BLUE_GREY_800 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
                     return ft.Container(
                         content=ft.Text(str(num), size=16, weight=ft.FontWeight.BOLD, color=tab_text_color),
                         padding=10,
