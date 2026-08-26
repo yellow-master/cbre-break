@@ -280,6 +280,7 @@ class CBREBreakApp:
         log("build_main_view start")
         try:
             self.page.clean()
+            self._expanded_groups.clear()
 
             header = ft.Row(
                 [
@@ -537,6 +538,7 @@ class CBREBreakApp:
     def toggle_group_expand(self, idx):
         if idx in self._expanded_groups:
             self._expanded_groups.discard(idx)
+            self._sort_current_list()
         else:
             self._expanded_groups.add(idx)
         self._refresh_list()
@@ -612,14 +614,15 @@ class CBREBreakApp:
             if not self.current_list:
                 self._list_control.controls.append(
                     ft.Container(
-                        content=ft.Text("Keine Einträge vorhanden.", size=14, text_align=ft.TextAlign.CENTER),
+                        content=ft.Text(self.t("no_entries"), size=15, text_align=ft.TextAlign.CENTER),
                         padding=16,
                     )
                 )
             else:
                 for idx, group in enumerate(self.current_list):
                     self._list_control.controls.append(self._build_group_card(group, idx))
-            self._sort_current_list()
+            if not self._expanded_groups:
+                self._sort_current_list()
             self._update_total()
             self.page.update()
 
