@@ -24,7 +24,6 @@ class CBREBreakApp:
         self.page.window_width = 400
         self.page.window_height = 800
         self.page.padding = 12
-        self.page.bottom_appbar_height = 56
 
         self.products = []
         self.people = []
@@ -173,11 +172,10 @@ class CBREBreakApp:
             bottom_row = ft.Row(
                 [
                     ft.IconButton(
-                        icon=ft.icons.Icons.LIGHT_MODE if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.Icons.DARK_MODE,
+                        icon=ft.icons.Icons.WB_SUNNY if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.Icons.NIGHTLIGHT,
                         on_click=self.toggle_theme,
                         tooltip="Dark Mode",
                         icon_size=24,
-                        style=ft.ButtonStyle(padding=12),
                     ),
                     ft.ElevatedButton("Eintrag hinzufügen", on_click=self.show_input_view, expand=3, height=48),
                 ],
