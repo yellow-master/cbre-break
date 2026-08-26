@@ -443,12 +443,10 @@ class CBREBreakApp:
                     is_active = self._active_list_id == str(num)
                     tab_bg = ft.Colors.CYAN_600 if is_active else ft.Colors.TRANSPARENT
                     tab_text_color = ft.Colors.WHITE if is_active else ft.Colors.BLUE_GREY_800 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_200
-                    tab_border = ft.BorderSide(1, ft.Colors.CYAN_600 if is_active else ft.Colors.BLUE_GREY_300 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_600)
                     return ft.Container(
                         content=ft.Text(str(num), size=16, weight=ft.FontWeight.BOLD, color=tab_text_color),
                         padding=10,
                         bgcolor=tab_bg,
-                        border=ft.Border(top=tab_border, bottom=tab_border, left=tab_border if num == 1 else ft.BorderSide(1, ft.Colors.TRANSPARENT), right=tab_border if num == 3 else ft.BorderSide(1, ft.Colors.TRANSPARENT)),
                         on_click=lambda e, n=str(num): self._switch_list(n),
                         tooltip=self.t(f"list_{num}"),
                         width=120,
@@ -501,11 +499,9 @@ class CBREBreakApp:
                 ],
             )
 
-            content_border = ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700
             content_container = ft.Container(
                 content=self._list_control,
                 expand=True,
-                border=ft.Border(left=ft.BorderSide(1, content_border), top=ft.BorderSide(1, content_border), right=ft.BorderSide(1, content_border), bottom=ft.BorderSide(1, content_border)),
                 border_radius=ft.BorderRadius(bottom_left=16, bottom_right=16, top_left=0, top_right=0),
             )
 
