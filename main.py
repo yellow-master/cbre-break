@@ -473,7 +473,7 @@ class CBREBreakApp:
                         on_click=lambda e, n=num: self._switch_list(n),
                         tooltip=self.t(f"list_{num}"),
                         expand=True,
-                        alignment=ft.alignment.center,
+                        alignment="center",
                         border_radius=ft.BorderRadius(top_left=12, top_right=12, bottom_right=0, bottom_left=0),
                     )
 
