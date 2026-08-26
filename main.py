@@ -1,6 +1,7 @@
 import flet as ft
 import json
 import os
+import threading
 import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -33,6 +34,7 @@ class CBREBreakApp:
         self._list_control = None
         self._total_label = None
         self._expanded_groups = set()
+        self._save_timer = None
 
         self.show_loading()
         self.page.update()
@@ -277,7 +279,14 @@ class CBREBreakApp:
 
                 content = ft.Column(item_rows, spacing=2)
                 opacity_val = 0.5 if group_paid else 1.0
-                card = ft.Container(content=content, padding=6, border_radius=8, opacity=opacity_val)
+                card = ft.Container(
+                    content=content,
+                    padding=6,
+                    border_radius=8,
+                    opacity=opacity_val,
+                    on_click=lambda e, g=group: self.toggle_group_paid(g),
+                    ink=True,
+                )
         else:
             content = ft.Container(padding=ft.Padding(left=36, top=0, right=0, bottom=0))
             card = ft.Container(content=content, padding=6, border_radius=8)
@@ -314,6 +323,20 @@ class CBREBreakApp:
         except (ValueError, TypeError):
             return 0.0
 
+    def _ensure_product_in_catalog(self, name, unit_price):
+        name = name.strip()
+        if not name:
+            return
+        if not any(p.get("name", "").lower() == name.lower() for p in self.products):
+            self.products.append({"name": name, "price": float(unit_price)})
+
+    def _debounced_save(self, delay=0.4):
+        if self._save_timer:
+            self._save_timer.cancel()
+        self._save_timer = threading.Timer(delay, self.save_data)
+        self._save_timer.daemon = True
+        self._save_timer.start()
+
     def _make_item_field_changer(self, group, item_idx, field):
         def changer(e):
             try:
@@ -325,7 +348,7 @@ class CBREBreakApp:
                     item[field] = max(1, val)
                 else:
                     item[field] = e.control.value.strip()
-                self.save_data()
+                self._debounced_save()
                 self._refresh_list()
             except ValueError:
                 pass
@@ -450,6 +473,10 @@ class CBREBreakApp:
         self._refresh_list()
 
     def finish_edit(self, e):
+        if self._save_timer:
+            self._save_timer.cancel()
+            self._save_timer = None
+        self.save_data()
         self.editing = False
         self._refresh_list()
 
@@ -595,6 +622,7 @@ class CBREBreakApp:
                 self.current_list.append({"name": name, "items": [entry]})
             if name not in self.people:
                 self.people.append(name)
+            self._ensure_product_in_catalog(entry["product"], entry["price"])
             self.save_data()
             self.product_field.value = ""
             self.price_field.value = ""
@@ -633,6 +661,7 @@ class CBREBreakApp:
                     self.current_list.append({"name": name, "items": [entry]})
                 if name not in self.people:
                     self.people.append(name)
+                self._ensure_product_in_catalog(entry["product"], entry["price"])
                 self.save_data()
             self.name_field.value = ""
             self.product_field.value = ""
@@ -673,6 +702,7 @@ class CBREBreakApp:
                     self.current_list.append({"name": name, "items": [entry]})
                 if name not in self.people:
                     self.people.append(name)
+                self._ensure_product_in_catalog(entry["product"], entry["price"])
                 self.save_data()
             self.build_main_view()
             self.page.update()
