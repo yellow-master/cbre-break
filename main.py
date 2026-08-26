@@ -279,7 +279,7 @@ class CBREBreakApp:
                 opacity_val = 0.5 if group_paid else 1.0
                 card = ft.Container(content=content, padding=6, border_radius=8, opacity=opacity_val)
         else:
-            content = ft.Container(padding=ft.padding.only(left=36))
+            content = ft.Container(padding=ft.Padding(left=36, top=0, right=0, bottom=0))
             card = ft.Container(content=content, padding=6, border_radius=8)
 
         return ft.Container(content=ft.Column([name_row, ft.Divider(height=1, color=ft.Colors.TRANSPARENT), card], spacing=4), padding=8, border_radius=10)
