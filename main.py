@@ -651,8 +651,6 @@ class CBREBreakApp:
         self._total_label.value = f"{self.t('total_price')} {total:.2f} €"
 
     def _toggle_item_paid_quick(self, group, item, e=None):
-        if e:
-            e.stop_propagation()
         self._item_toggle_active = True
         try:
             item["paid"] = not item.get("paid", False)
