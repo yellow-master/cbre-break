@@ -430,7 +430,7 @@ class CBREBreakApp:
                     is_active = self._active_list_id == str(num)
                     return ft.Container(
                         content=ft.Text(label, size=15, weight=ft.FontWeight.BOLD if is_active else ft.FontWeight.W_500, color=ft.Colors.WHITE if is_active else ft.Colors.GREY_600),
-                        padding=ft.padding.only(left=14, right=14, top=10, bottom=10),
+                        padding=10,
                         border_radius=ft.BorderRadius(top_left=10, top_right=10, bottom_right=0, bottom_left=0),
                         bgcolor=ft.Colors.CYAN_600 if is_active else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700,
                         on_click=lambda e, n=num: self._switch_list(n),
