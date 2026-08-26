@@ -425,21 +425,6 @@ class CBREBreakApp:
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             )
 
-            self._total_label = ft.Text(f"{self.t('total_price')} {total:.2f} €", size=total_size, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, expand=1)
-
-            bottom_row = ft.Row(
-                [
-                    ft.IconButton(
-                        icon=ft.icons.Icons.WB_SUNNY if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.Icons.NIGHTLIGHT,
-                        on_click=self.toggle_theme,
-                        tooltip=self.t("dark_mode"),
-                        icon_size=self._ui(24, 20),
-                        style=ft.ButtonStyle(bgcolor=ft.Colors.AMBER_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.AMBER_900, shape=ft.CircleBorder()),
-                    ),
-                    ft.Text("By M.M", size=self._ui(11, 10), weight=ft.FontWeight.W_400, color=ft.Colors.GREY_400 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_500, expand=1, text_align=ft.TextAlign.RIGHT),
-                ],
-            )
-
             self._list_control = ft.Column(spacing=card_spacing, scroll=ft.ScrollMode.AUTO, expand=True)
 
             if not self._current_list():
