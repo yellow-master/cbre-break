@@ -310,12 +310,17 @@ class CBREBreakApp:
         expand_icon = ft.icons.Icons.EXPAND_LESS if is_expanded else ft.icons.Icons.CHEVRON_RIGHT
         icon_color = ft.Colors.GREY_600 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_300
 
+        border_color = ft.Colors.GREY_400 if group_paid else ft.Colors.GREY_500
+        bg_color = ft.Colors.WHITE
+        if self.page.theme_mode == ft.ThemeMode.DARK:
+            bg_color = ft.Colors.BLUE_GREY_900
+
         name_row = ft.Row(
             [
                 ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=18, tooltip="Aufklappen", style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT), icon_color=icon_color),
                 ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
-                ft.Text(f"{group_total:.2f} €", size=15, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, color=ft.Colors.BLUE_600 if not group_paid else ft.Colors.GREEN_600),
-                ft.Text("bezahlt" if group_paid else "offen", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_600 if group_paid else ft.Colors.ORANGE_600),
+                ft.Text(f"{group_total:.2f} €", size=15, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, color=ft.Colors.BLUE_GREY_700 if not group_paid else ft.Colors.GREEN_700),
+                ft.Text("bezahlt" if group_paid else "offen", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_700 if group_paid else ft.Colors.ORANGE_700),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         )
@@ -376,7 +381,7 @@ class CBREBreakApp:
                     paid = item.get("paid", False)
                     line_total = price * quantity
 
-                    item_bg = ft.Colors.GREEN_50 if paid else ft.Colors.WHITE
+                    item_bg = ft.Colors.GREY_100 if paid else ft.Colors.WHITE
                     if self.page.theme_mode == ft.ThemeMode.DARK:
                         item_bg = ft.Colors.BLUE_GREY_800 if paid else ft.Colors.BLUE_GREY_900
 
