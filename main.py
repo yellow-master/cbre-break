@@ -380,6 +380,7 @@ class CBREBreakApp:
                         icon_size=24,
                         style=ft.ButtonStyle(bgcolor=ft.Colors.AMBER_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.AMBER_900, shape=ft.CircleBorder()),
                     ),
+                    ft.Text("By M.M", size=12, color=ft.Colors.GREY_500 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_400, expand=1, text_align=ft.TextAlign.RIGHT),
                 ],
             )
 
@@ -837,12 +838,13 @@ class CBREBreakApp:
 
         matches = [p for p in self.people if p.lower().startswith(value.lower())]
         if matches:
+            suggestion_bg = ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800
             self.name_suggestion_list.controls = [
                 ft.Container(
-                    content=ft.Text(p, size=14),
+                    content=ft.Text(p, size=14, color=ft.Colors.BLUE_GREY_900 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_100),
                     padding=12,
                     border_radius=10,
-                    bgcolor=ft.Colors.BLUE_50,
+                    bgcolor=suggestion_bg,
                     on_click=lambda e, p=p: self.select_name(p),
                 )
                 for p in matches
@@ -872,18 +874,20 @@ class CBREBreakApp:
 
         matches = [p for p in self.products if p["name"].lower().startswith(value.lower())]
         if matches:
+            suggestion_bg = ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800
+            text_color = ft.Colors.BLUE_GREY_900 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_100
             self.product_suggestion_list.controls = [
                 ft.Container(
                     content=ft.Row(
                         [
-                            ft.Text(p["name"], size=14, expand=1),
-                            ft.Text(f"{p['price']:.2f} €", size=14),
+                            ft.Text(p["name"], size=14, expand=1, color=text_color),
+                            ft.Text(f"{p['price']:.2f} €", size=14, color=text_color),
                         ],
                         spacing=8,
                     ),
                     padding=12,
                     border_radius=10,
-                    bgcolor=ft.Colors.BLUE_50,
+                    bgcolor=suggestion_bg,
                     on_click=lambda e, p=p: self.select_product(p),
                 )
                 for p in matches
