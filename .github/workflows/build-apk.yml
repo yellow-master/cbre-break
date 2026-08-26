@@ -76,8 +76,7 @@ jobs:
             --org de.cbre \
             --project CBRE_BREAK \
             --build-version 1.0 \
-            --build-number 1 \
-            . 2>&1 | tee build.log
+            --build-number 1 2>&1 | tee build.log
           BUILD_EXIT_CODE=${PIPESTATUS[0]}
           echo "=== EXIT CODE: $BUILD_EXIT_CODE ==="
           set -e
