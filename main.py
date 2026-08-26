@@ -416,7 +416,7 @@ class CBREBreakApp:
                     ft.Container(
                         content=ft.Text("1", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE if self._active_list_id == "1" else ft.Colors.GREY_600),
                         padding=8,
-                        border_radius=ft.border_radius.only(top_left=12, top_right=12, bottom_left=4, bottom_right=4),
+                        border_radius=ft.BorderRadius(top_left=12, top_right=12, bottom_right=4, bottom_left=4),
                         bgcolor=ft.Colors.CYAN_600 if self._active_list_id == "1" else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700,
                         on_click=lambda e: self._switch_list(1),
                         tooltip=self.t("list_1"),
@@ -424,7 +424,7 @@ class CBREBreakApp:
                     ft.Container(
                         content=ft.Text("2", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE if self._active_list_id == "2" else ft.Colors.GREY_600),
                         padding=8,
-                        border_radius=ft.border_radius.only(top_left=12, top_right=12, bottom_left=4, bottom_right=4),
+                        border_radius=ft.BorderRadius(top_left=12, top_right=12, bottom_right=4, bottom_left=4),
                         bgcolor=ft.Colors.CYAN_600 if self._active_list_id == "2" else ft.Colors.BLUE_GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_700,
                         on_click=lambda e: self._switch_list(2),
                         tooltip=self.t("list_2"),
