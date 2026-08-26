@@ -242,69 +242,56 @@ class CBREBreakApp:
         self._current_view = "settings"
         compact = self._compact()
 
-        def setting_row(icon, switch):
-            return ft.Row(
-                [
-                    ft.Icon(icon, size=20, color=ft.Colors.BLUE_400),
-                    ft.Container(expand=True),
-                    switch,
-                ],
-                spacing=12,
-            )
-
-        theme_switch = ft.Switch(value=self.page.theme_mode == ft.ThemeMode.DARK, on_change=self._on_settings_theme_change, active_color=ft.Colors.BLUE_400)
-        auto_products_switch = ft.Switch(value=bool(self.settings.get("auto_add_products", True)), on_change=self._on_settings_auto_products_change, active_color=ft.Colors.GREEN_400)
-        auto_persons_switch = ft.Switch(value=bool(self.settings.get("auto_add_persons", True)), on_change=self._on_settings_auto_persons_change, active_color=ft.Colors.PURPLE_400)
-        language_switch = ft.Switch(value=self.settings.get("language", "de") == "en", on_change=self._on_settings_language_change, active_color=ft.Colors.ORANGE_400)
-        beta_switch = ft.Switch(value=bool(self.settings.get("beta_enabled", False)), on_change=self._on_settings_beta_change, active_color=ft.Colors.CYAN_400)
+        theme_switch = ft.Switch(label=self.t("dark_mode"), value=self.page.theme_mode == ft.ThemeMode.DARK, on_change=self._on_settings_theme_change, active_color=ft.Colors.BLUE_400)
+        auto_products_switch = ft.Switch(label=self.t("auto_add_products"), value=bool(self.settings.get("auto_add_products", True)), on_change=self._on_settings_auto_products_change, active_color=ft.Colors.GREEN_400)
+        auto_persons_switch = ft.Switch(label=self.t("auto_add_persons"), value=bool(self.settings.get("auto_add_persons", True)), on_change=self._on_settings_auto_persons_change, active_color=ft.Colors.PURPLE_400)
+        language_switch = ft.Switch(label=self.t("language"), value=self.settings.get("language", "de") == "en", on_change=self._on_settings_language_change, active_color=ft.Colors.ORANGE_400)
+        beta_switch = ft.Switch(label=self.t("beta"), value=bool(self.settings.get("beta_enabled", False)), on_change=self._on_settings_beta_change, active_color=ft.Colors.CYAN_400)
 
         products_btn = ft.ElevatedButton(self.t("products"), icon=ft.icons.Icons.INVENTORY_2, on_click=lambda e: self._open_manager_from_settings("produkt"), height=self._ui(48, 44), style=ft.ButtonStyle(bgcolor=ft.Colors.ORANGE_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.ORANGE_900, shape=ft.RoundedRectangleBorder(radius=self._ui(14, 12))))
         persons_btn = ft.ElevatedButton(self.t("people"), icon=ft.icons.Icons.PEOPLE, on_click=lambda e: self._open_manager_from_settings("person"), height=self._ui(48, 44), style=ft.ButtonStyle(bgcolor=ft.Colors.PURPLE_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.PURPLE_900, shape=ft.RoundedRectangleBorder(radius=self._ui(14, 12))))
 
-        content = ft.Column(
-            [
-                ft.Text(self.t("settings"), size=self._ui(22, 18), weight=ft.FontWeight.BOLD),
-                ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                ft.Container(
-                    content=ft.Column(
-                        [
-                            setting_row(ft.icons.Icons.DARK_MODE, theme_switch),
-                            ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                            setting_row(ft.icons.Icons.INVENTORY_2, auto_products_switch),
-                            ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                            setting_row(ft.icons.Icons.PEOPLE, auto_persons_switch),
-                            ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                            setting_row(ft.icons.Icons.LANGUAGE, language_switch),
-                            ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                            setting_row(ft.icons.Icons.BUG_REPORT, beta_switch),
-                        ],
-                        spacing=self._ui(10, 8),
-                    ),
-                    padding=self._ui(16, 12),
-                    border_radius=self._ui(16, 12),
-                    bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
-                ),
-                ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
-                ft.Container(
-                    content=ft.Column(
-                        [
-                            ft.Text(self.t("product_management") + " / " + self.t("person_management"), size=self._ui(14, 12), color=ft.Colors.BLUE_GREY_600 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_300, text_align=ft.TextAlign.CENTER),
-                            ft.Row([products_btn, persons_btn], spacing=self._ui(10, 8)),
-                        ],
-                        spacing=self._ui(8, 6),
-                    ),
-                    padding=self._ui(12, 10),
-                    border_radius=self._ui(12, 10),
-                    bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
-                ),
-                ft.ElevatedButton(self.t("finish"), on_click=lambda e: self.build_main_view(), height=self._ui(48, 44), expand=1, style=ft.ButtonStyle(bgcolor=ft.Colors.GREEN_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREEN_900, shape=ft.RoundedRectangleBorder(radius=self._ui(14, 12)))),
-            ],
-            spacing=self._ui(12, 10),
-            scroll=ft.ScrollMode.AUTO,
-        )
-
         settings_card = ft.Container(
-            content=content,
+            content=ft.Column(
+                [
+                    ft.Text(self.t("settings"), size=self._ui(20, 18), weight=ft.FontWeight.BOLD),
+                    ft.Divider(),
+                    ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Row([ft.Icon(ft.icons.Icons.DARK_MODE, color=ft.Colors.BLUE_400), theme_switch], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
+                                ft.Row([ft.Icon(ft.icons.Icons.INVENTORY_2, color=ft.Colors.GREEN_400), auto_products_switch], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
+                                ft.Row([ft.Icon(ft.icons.Icons.PEOPLE, color=ft.Colors.PURPLE_400), auto_persons_switch], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
+                                ft.Row([ft.Icon(ft.icons.Icons.LANGUAGE, color=ft.Colors.ORANGE_400), language_switch], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                ft.Divider(height=1, color=ft.Colors.TRANSPARENT),
+                                ft.Row([ft.Icon(ft.icons.Icons.BUG_REPORT, color=ft.Colors.CYAN_400), beta_switch], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                            ],
+                            spacing=self._ui(12, 10),
+                        ),
+                        padding=self._ui(16, 12),
+                        border_radius=self._ui(16, 12),
+                        bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
+                    ),
+                    ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Text(self.t("product_management") + " / " + self.t("person_management"), size=self._ui(14, 12), color=ft.Colors.BLUE_GREY_600 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_300, text_align=ft.TextAlign.CENTER),
+                                ft.Row([products_btn, persons_btn], spacing=self._ui(8, 6)),
+                            ],
+                            spacing=self._ui(8, 6),
+                        ),
+                        padding=self._ui(12, 10),
+                        border_radius=self._ui(12, 10),
+                        bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
+                    ),
+                    ft.ElevatedButton(self.t("finish"), on_click=lambda e: self.build_main_view(), height=self._ui(48, 44), expand=1, style=ft.ButtonStyle(bgcolor=ft.Colors.GREEN_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREEN_900, shape=ft.RoundedRectangleBorder(radius=self._ui(14, 12)))),
+                ],
+                spacing=self._ui(16, 12),
+                scroll=ft.ScrollMode.AUTO,
+            ),
             padding=self._ui(20, 12),
             border_radius=self._ui(20, 16),
             width=self.page.window_width - 24 if self.page.window_width and self.page.window_width > 240 else 376,
@@ -469,6 +456,8 @@ class CBREBreakApp:
                     ft.Container(
                         content=ft.Text(self.t("no_entries"), size=self._ui(15, 13), text_align=ft.TextAlign.CENTER, color=ft.Colors.BLUE_GREY_500 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_400),
                         padding=self._ui(32, 24),
+                        alignment="center",
+                        expand=True,
                     )
                 )
             else:
