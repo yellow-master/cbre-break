@@ -304,6 +304,16 @@ class CBREBreakApp:
         except Exception:
             log(f"add_item_to_group error: {traceback.format_exc()}")
 
+    def _normalize_entry_price(self, price, quantity):
+        try:
+            price_val = float(price)
+            qty_val = max(1, int(quantity))
+            if qty_val > 1:
+                price_val = price_val / qty_val
+            return price_val
+        except (ValueError, TypeError):
+            return 0.0
+
     def _make_item_field_changer(self, group, item_idx, field):
         def changer(e):
             try:
@@ -334,8 +344,19 @@ class CBREBreakApp:
             else:
                 for idx, group in enumerate(self.current_list):
                     self._list_control.controls.append(self._build_group_card(group, idx))
+            self._sort_current_list()
             self._update_total()
             self.page.update()
+
+    def _group_sort_key(self, group):
+        try:
+            unpaid = sum(item.get("price", 0) * item.get("quantity", 1) for item in group.get("items", []) if not item.get("paid", False))
+            return -unpaid
+        except Exception:
+            return 0
+
+    def _sort_current_list(self):
+        self.current_list.sort(key=self._group_sort_key)
 
     def _update_total(self):
         if not self._total_label:
@@ -421,7 +442,11 @@ class CBREBreakApp:
         self.page.update()
 
     def edit_list(self, e):
-        self.editing = True
+        self.editing = not self.editing
+        if self.editing:
+            self._expanded_groups = set(range(len(self.current_list)))
+        else:
+            self._expanded_groups.clear()
         self._refresh_list()
 
     def finish_edit(self, e):
@@ -558,7 +583,7 @@ class CBREBreakApp:
                 quantity = 1
             entry = {
                 "product": self.product_field.value.strip(),
-                "price": float(self.price_field.value.replace(",", ".")),
+                "price": self._normalize_entry_price(self.price_field.value, quantity),
                 "quantity": max(1, quantity),
                 "paid": False,
             }
@@ -596,7 +621,7 @@ class CBREBreakApp:
                     quantity = 1
                 entry = {
                     "product": self.product_field.value.strip(),
-                    "price": float(self.price_field.value.replace(",", ".")),
+                    "price": self._normalize_entry_price(self.price_field.value, quantity),
                     "quantity": max(1, quantity),
                     "paid": False,
                 }
@@ -636,7 +661,7 @@ class CBREBreakApp:
                     quantity = 1
                 entry = {
                     "product": self.product_field.value.strip(),
-                    "price": float(self.price_field.value.replace(",", ".")),
+                    "price": self._normalize_entry_price(self.price_field.value, quantity),
                     "quantity": max(1, quantity),
                     "paid": False,
                 }
