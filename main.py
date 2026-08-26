@@ -287,25 +287,25 @@ class CBREBreakApp:
                         icon=ft.icons.Icons.SETTINGS,
                         on_click=self.show_settings,
                         tooltip=self.t("settings"),
-                        icon_size=20,
+                        icon_size=22,
                         style=ft.ButtonStyle(bgcolor=ft.Colors.GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_700, shape=ft.CircleBorder()),
                     ),
                     ft.IconButton(
                         icon=ft.icons.Icons.EDIT,
                         on_click=self.edit_list,
                         tooltip=self.t("edit"),
-                        icon_size=20,
+                        icon_size=22,
                         style=ft.ButtonStyle(bgcolor=ft.Colors.BLUE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_800, shape=ft.CircleBorder()),
                     ),
                     ft.IconButton(
                         icon=ft.icons.Icons.ADD,
                         on_click=self.show_input_view,
                         tooltip=self.t("add_entry"),
-                        icon_size=20,
+                        icon_size=22,
                         style=ft.ButtonStyle(bgcolor=ft.Colors.GREEN_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREEN_900, shape=ft.CircleBorder()),
                     ),
                 ],
-                spacing=10,
+                spacing=12,
             )
 
             top_right = ft.Row(
@@ -314,25 +314,25 @@ class CBREBreakApp:
                         icon=ft.icons.Icons.INVENTORY_2,
                         on_click=self.add_product_dialog,
                         tooltip=self.t("products"),
-                        icon_size=20,
+                        icon_size=22,
                         style=ft.ButtonStyle(bgcolor=ft.Colors.ORANGE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.ORANGE_900, shape=ft.CircleBorder()),
                     ),
                     ft.IconButton(
                         icon=ft.icons.Icons.PEOPLE,
                         on_click=self.add_person_dialog,
                         tooltip=self.t("people"),
-                        icon_size=20,
+                        icon_size=22,
                         style=ft.ButtonStyle(bgcolor=ft.Colors.PURPLE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.PURPLE_900, shape=ft.CircleBorder()),
                     ),
                     ft.IconButton(
                         icon=ft.icons.Icons.REFRESH,
                         on_click=self.reset_list,
                         tooltip=self.t("reset"),
-                        icon_size=20,
+                        icon_size=22,
                         style=ft.ButtonStyle(bgcolor=ft.Colors.RED_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.RED_900, shape=ft.CircleBorder()),
                     ),
                 ],
-                spacing=10,
+                spacing=12,
             )
 
             title_row = ft.Row(
@@ -418,14 +418,8 @@ class CBREBreakApp:
 
         name_row = ft.Row(
             [
-                ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=18, tooltip=self.t("expand"), style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT), icon_color=icon_color),
-                ft.Container(
-                    content=ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
-                    padding=ft.Padding(left=6, right=8, top=4, bottom=4),
-                    border_radius=8,
-                    ink=True,
-                    on_click=lambda e, g=group: self.toggle_group_paid(g),
-                ),
+                ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=22, tooltip=self.t("expand"), style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT), icon_color=icon_color),
+                ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
                 ft.Text(f"{group_total:.2f} €", size=15, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, color=ft.Colors.BLUE_GREY_700 if not group_paid else ft.Colors.GREEN_700),
                 ft.Text(self.t("paid") if group_paid else self.t("unpaid"), size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_700 if group_paid else ft.Colors.ORANGE_700),
             ],
@@ -505,7 +499,7 @@ class CBREBreakApp:
                         border_radius=10,
                         bgcolor=item_bg,
                         ink=True,
-                        on_click=lambda e, i=item: self._toggle_item_paid_quick(group, item),
+                        on_click=lambda e, captured_item=item: self._toggle_item_paid_quick(group, captured_item),
                     )
                     item_rows.append(row)
 
@@ -693,11 +687,36 @@ class CBREBreakApp:
     def reset_list(self, e):
         log("reset_list clicked")
         try:
-            self.current_list = []
-            self.save_data()
-            self._refresh_list()
+            self.page.clean()
+            self.page.add(
+                ft.Column(
+                    [
+                        ft.Text("Reset", size=18, weight=ft.FontWeight.BOLD),
+                        ft.Text("Liste wirklich zurücksetzen? Alle Einträge werden gelöscht."),
+                        ft.Row(
+                            [
+                                ft.ElevatedButton(self.t("no"), on_click=self._reset_cancel, height=48, expand=1, style=ft.ButtonStyle(bgcolor=ft.Colors.GREY_200 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREY_700, shape=ft.RoundedRectangleBorder(radius=14))),
+                                ft.ElevatedButton(self.t("yes"), on_click=self._reset_confirm, height=48, expand=1, style=ft.ButtonStyle(bgcolor=ft.Colors.RED_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.RED_900, shape=ft.RoundedRectangleBorder(radius=14))),
+                            ],
+                            spacing=12,
+                        ),
+                    ],
+                    spacing=16,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
+            )
+            self.page.update()
         except Exception:
             log(f"reset_list error: {traceback.format_exc()}")
+
+    def _reset_cancel(self, e):
+        self.build_main_view()
+
+    def _reset_confirm(self, e):
+        self.current_list = []
+        self.save_data()
+        self.build_main_view()
 
     def new_option(self, e):
         log("new_option clicked")
