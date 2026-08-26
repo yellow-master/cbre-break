@@ -129,6 +129,7 @@ class CBREBreakApp:
         self._total_label = None
         self._expanded_groups = set()
         self._save_timer = None
+        self._item_toggle_active = False
 
         self.show_loading()
         self.page.update()
@@ -420,7 +421,13 @@ class CBREBreakApp:
         name_row = ft.Row(
             [
                 ft.IconButton(icon=expand_icon, on_click=lambda e, i=idx: self.toggle_group_expand(i), icon_size=22, tooltip=self.t("expand"), style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT), icon_color=icon_color),
-                ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
+                ft.Container(
+                    content=ft.Text(name, size=16, weight=ft.FontWeight.BOLD, expand=1),
+                    padding=ft.Padding(left=10, right=12, top=12, bottom=12),
+                    border_radius=10,
+                    ink=True,
+                    on_click=lambda e, g=group: self.toggle_group_paid(g),
+                ),
                 ft.Text(f"{group_total:.2f} €", size=15, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.END, color=ft.Colors.BLUE_GREY_700 if not group_paid else ft.Colors.GREEN_700),
                 ft.Text(self.t("paid") if group_paid else self.t("unpaid"), size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_700 if group_paid else ft.Colors.ORANGE_700),
             ],
@@ -637,25 +644,20 @@ class CBREBreakApp:
     def _sort_current_list(self):
         self.current_list.sort(key=self._group_sort_key)
 
-    def _update_total(self):
-        if not self._total_label:
-            return
-        total = 0
-        for group in self.current_list:
-            for item in group.get("items", []):
-                if not item.get("paid", False):
-                    total += item.get("price", 0) * item.get("quantity", 1)
-        self._total_label.value = f"Gesamtpreis: {total:.2f} €"
-
     def _toggle_item_paid_quick(self, group, item):
+        self._item_toggle_active = True
         try:
             item["paid"] = not item.get("paid", False)
             self.save_data()
             self._refresh_list()
         except Exception:
             log(f"_toggle_item_paid_quick error: {traceback.format_exc()}")
+        finally:
+            self._item_toggle_active = False
 
     def toggle_group_paid(self, group):
+        if getattr(self, '_item_toggle_active', False):
+            return
         try:
             all_paid = all(item.get("paid", False) for item in group.get("items", []))
             for item in group.get("items", []):
