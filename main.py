@@ -130,6 +130,7 @@ class CBREBreakApp:
         self._expanded_groups = set()
         self._save_timer = None
         self._item_toggle_active = False
+        self._manager_from_settings = False
 
         self.show_loading()
         self.page.update()
@@ -212,6 +213,9 @@ class CBREBreakApp:
         auto_persons_switch = ft.Switch(label=self.t("auto_add_persons"), value=bool(self.settings.get("auto_add_persons", True)), on_change=self._on_settings_auto_persons_change, active_color=ft.Colors.PURPLE_400)
         language_switch = ft.Switch(label=self.t("language"), value=self.settings.get("language", "de") == "en", on_change=self._on_settings_language_change, active_color=ft.Colors.ORANGE_400)
 
+        products_btn = ft.ElevatedButton(self.t("products"), icon=ft.icons.Icons.INVENTORY_2, on_click=lambda e: self._open_manager_from_settings("produkt"), height=self._ui(48, 44), style=ft.ButtonStyle(bgcolor=ft.Colors.ORANGE_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.ORANGE_900, color=ft.Colors.ORANGE_900 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.ORANGE_100, shape=ft.RoundedRectangleBorder(radius=self._ui(14, 12))))
+        persons_btn = ft.ElevatedButton(self.t("people"), icon=ft.icons.Icons.PEOPLE, on_click=lambda e: self._open_manager_from_settings("person"), height=self._ui(48, 44), style=ft.ButtonStyle(bgcolor=ft.Colors.PURPLE_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.PURPLE_900, color=ft.Colors.PURPLE_900 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.PURPLE_100, shape=ft.RoundedRectangleBorder(radius=self._ui(14, 12))))
+
         settings_card = ft.Container(
             content=ft.Column(
                 [
@@ -232,6 +236,18 @@ class CBREBreakApp:
                         ),
                         padding=self._ui(16, 12),
                         border_radius=self._ui(16, 12),
+                        bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
+                    ),
+                    ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Text(self.t("product_management") + " / " + self.t("person_management"), size=self._ui(14, 12), color=ft.Colors.BLUE_GREY_600 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_300, text_align=ft.TextAlign.CENTER),
+                                ft.Row([products_btn, persons_btn], spacing=self._ui(8, 6)),
+                            ],
+                            spacing=self._ui(8, 6),
+                        ),
+                        padding=self._ui(12, 10),
+                        border_radius=self._ui(12, 10),
                         bgcolor=ft.Colors.BLUE_GREY_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.BLUE_GREY_900,
                     ),
                     ft.ElevatedButton(self.t("finish"), on_click=lambda e: self.build_main_view(), height=self._ui(48, 44), expand=1, style=ft.ButtonStyle(bgcolor=ft.Colors.GREEN_100 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.GREEN_900, shape=ft.RoundedRectangleBorder(radius=self._ui(14, 12)))),
@@ -330,20 +346,6 @@ class CBREBreakApp:
 
             top_right = ft.Row(
                 [
-                    ft.IconButton(
-                        icon=ft.icons.Icons.INVENTORY_2,
-                        on_click=self.add_product_dialog,
-                        tooltip=self.t("products"),
-                        icon_size=icon_size,
-                        style=ft.ButtonStyle(bgcolor=ft.Colors.ORANGE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.ORANGE_900, shape=ft.CircleBorder()),
-                    ),
-                    ft.IconButton(
-                        icon=ft.icons.Icons.PEOPLE,
-                        on_click=self.add_person_dialog,
-                        tooltip=self.t("people"),
-                        icon_size=icon_size,
-                        style=ft.ButtonStyle(bgcolor=ft.Colors.PURPLE_50 if self.page.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.PURPLE_900, shape=ft.CircleBorder()),
-                    ),
                     ft.IconButton(
                         icon=ft.icons.Icons.REFRESH,
                         on_click=self.reset_list,
@@ -1157,7 +1159,18 @@ class CBREBreakApp:
         log("manager close")
         self.manager_view_active = False
         self.save_data()
-        self.build_main_view()
+        if self._manager_from_settings:
+            self._manager_from_settings = False
+            self.show_settings()
+        else:
+            self.build_main_view()
+
+    def _open_manager_from_settings(self, item_type):
+        self._manager_from_settings = True
+        if item_type == "produkt":
+            self.show_manager_view(self.t("product_management"), self.products, "produkt")
+        else:
+            self.show_manager_view(self.t("person_management"), self.people, "person")
 
     def _refresh_manager_list(self):
         log(f"_refresh_manager_list start, count={len(self.manager_items)}")
