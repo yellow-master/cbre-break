@@ -158,6 +158,9 @@ class CBREBreakApp:
                     self.settings = data.get("settings", {"theme_mode": "light"})
                     if self._is_flat_list(self.current_list):
                         self.current_list = self._migrate_to_grouped(self.current_list)
+                    for group in self.current_list:
+                        for item in group.get("items", []):
+                            item["quantity"] = max(1, int(item.get("quantity", 1)))
             log("load_data end")
         except Exception:
             log(f"load_data error: {traceback.format_exc()}")
@@ -174,7 +177,7 @@ class CBREBreakApp:
             item = {
                 "product": entry.get("product", ""),
                 "price": entry.get("price", 0),
-                "quantity": entry.get("quantity", 1),
+                "quantity": int(entry.get("quantity", 1)),
                 "paid": entry.get("paid", False),
             }
             existing = next((g for g in grouped if g["name"] == name), None)
@@ -495,7 +498,7 @@ class CBREBreakApp:
                 for item_idx, item in enumerate(items):
                     product = item.get("product", "")
                     price = item.get("price", 0)
-                    quantity = item.get("quantity", 1)
+                    quantity = int(item.get("quantity", 1))
                     paid = item.get("paid", False)
 
                     item_card = ft.Container(
@@ -541,7 +544,7 @@ class CBREBreakApp:
                 for item in items:
                     product = item.get("product", "")
                     price = item.get("price", 0)
-                    quantity = item.get("quantity", 1)
+                    quantity = int(item.get("quantity", 1))
                     paid = item.get("paid", False)
                     line_total = price * quantity
 
@@ -990,17 +993,17 @@ class CBREBreakApp:
         try:
             if not self.validate_entry():
                 return
-            try:
-                quantity = int(self.quantity_field.value.replace(",", "."))
-            except ValueError:
-                quantity = 1
-            entry = {
-                "product": self.product_field.value.strip(),
-                "price": self._normalize_entry_price(self.price_field.value, quantity),
-                "quantity": max(1, quantity),
-                "paid": False,
-            }
-            name = self.name_field.value.strip()
+                try:
+                    quantity = int(self.quantity_field.value.replace(",", "."))
+                except ValueError:
+                    quantity = 1
+                entry = {
+                    "product": self.product_field.value.strip(),
+                    "price": self._normalize_entry_price(self.price_field.value, quantity),
+                    "quantity": max(1, quantity),
+                    "paid": False,
+                }
+                name = self.name_field.value.strip()
             existing = next((g for g in self.current_list if g["name"] == name), None)
             if existing:
                 existing["items"].append(entry)
@@ -1030,13 +1033,13 @@ class CBREBreakApp:
                 if not self.validate_entry():
                     return
                 try:
-                    quantity = int(self.quantity_field.value.replace(",", "."))
+                    quantity = float(self.quantity_field.value.replace(",", "."))
                 except ValueError:
                     quantity = 1
                 entry = {
                     "product": self.product_field.value.strip(),
                     "price": self._normalize_entry_price(self.price_field.value, quantity),
-                    "quantity": max(1, quantity),
+                    "quantity": max(0.01, quantity) if quantity > 0 else 1,
                     "paid": False,
                 }
                 name = self.name_field.value.strip()
@@ -1071,13 +1074,13 @@ class CBREBreakApp:
         try:
             if self.validate_entry():
                 try:
-                    quantity = int(self.quantity_field.value.replace(",", "."))
+                    quantity = float(self.quantity_field.value.replace(",", "."))
                 except ValueError:
                     quantity = 1
                 entry = {
                     "product": self.product_field.value.strip(),
                     "price": self._normalize_entry_price(self.price_field.value, quantity),
-                    "quantity": max(1, quantity),
+                    "quantity": max(0.01, quantity) if quantity > 0 else 1,
                     "paid": False,
                 }
                 name = self.name_field.value.strip()
